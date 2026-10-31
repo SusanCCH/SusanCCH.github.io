@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>心理靈活性練習儀表板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a persistent summary strip, a five-step path, then one working view at a time. Teal = flexibility, clay = inflexibility. */
+:root {
+  --paper: #F3F5F2;
+  --panel: #FFFFFF;
+  --ink: #17232A;
+  --muted: #5A6870;
+  --line: #D8DFDB;
+  --flex: #17716A;
+  --flex-soft: #DCEDE9;
+  --rigid: #AE532C;
+  --rigid-soft: #F5E2D8;
+  --band: #E6EAE7;
+  --good: #2F7D3F;
+  --warn: #A86A00;
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10171A; --panel: #172126; --ink: #E4ECEA; --muted: #9AA9AE; --line: #2B383D;
+    --flex: #55B6AB; --flex-soft: #1C3634; --rigid: #E28D66; --rigid-soft: #3A2620; --band: #24302F;
+    --good: #6CC07C; --warn: #E0A84A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10171A; --panel: #172126; --ink: #E4ECEA; --muted: #9AA9AE; --line: #2B383D;
+  --flex: #55B6AB; --flex-soft: #1C3634; --rigid: #E28D66; --rigid-soft: #3A2620; --band: #24302F;
+  --good: #6CC07C; --warn: #E0A84A; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.65; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 48px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.3; }
+h1 { font-size: 28px; }
+h2 { font-size: 22px; }
+h3 { font-size: 18px; }
+p { margin: 0; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--flex); outline-offset: 2px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; padding: 28px 0 18px; }
+.top .sub { color: var(--muted); max-width: 60ch; margin-top: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.chip.ok .dot { background: var(--good); }
+.chip.warn .dot { background: var(--warn); }
+
+/* summary strip */
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tile .label { font-size: 13px; color: var(--muted); }
+.tile .big { font-family: var(--font-display); font-size: 30px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.tile .big.flex { color: var(--flex); }
+.tile .big.rigid { color: var(--rigid); }
+.tile .big.text { font-size: 19px; line-height: 1.35; }
+.tile .note { font-size: 13px; color: var(--muted); }
+.tile.flexstripe { border-top: 4px solid var(--flex); }
+.tile.rigidstripe { border-top: 4px solid var(--rigid); }
+
+/* steps */
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 18px 0 22px; padding: 0; list-style: none; }
+.steps a { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); text-decoration: none; color: var(--ink); min-height: 56px; }
+.steps a:hover { border-color: var(--flex); }
+.steps a[aria-current="page"] { background: var(--flex); border-color: var(--flex); color: var(--panel); }
+.steps .n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; border: 1.5px solid currentColor; }
+.steps .done .n { background: var(--flex-soft); color: var(--flex); border-color: var(--flex); }
+.steps a[aria-current="page"] .n { background: transparent; color: var(--panel); border-color: var(--panel); }
+.steps .t { font-weight: 500; line-height: 1.3; }
+.steps .s { display: block; font-size: 12px; opacity: .8; font-weight: 400; }
+
+/* panels */
+.view { display: none; }
+.view.on { display: block; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.grid-learn { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
+.head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.lead { max-width: 65ch; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--flex); background: var(--flex); color: var(--panel); cursor: pointer; font-weight: 500; text-decoration: none; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--flex); }
+.btn.quiet { background: transparent; color: var(--muted); border-color: var(--line); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.banner { border-left: 4px solid var(--warn); background: var(--panel); padding: 10px 14px; border-radius: 6px; font-size: 14px; }
+.banner.info { border-left-color: var(--flex); }
+
+/* hexaflex */
+.hexwrap svg { width: 100%; height: auto; display: block; }
+.hexnode { cursor: pointer; }
+.hexnode circle { fill: var(--panel); stroke: var(--flex); stroke-width: 2; transition: fill .15s; }
+.hexnode text { fill: var(--ink); font-size: 13px; font-weight: 500; pointer-events: none; }
+.hexnode text.sc { font-size: 11px; fill: var(--muted); font-weight: 400; }
+.hexnode.sel circle { fill: var(--flex); }
+.hexnode.sel text { fill: var(--panel); }
+.hexwrap.rigid .hexnode circle { stroke: var(--rigid); }
+.hexwrap.rigid .hexnode.sel circle { fill: var(--rigid); }
+.hexnode:focus-visible { outline: none; }
+.hexnode:focus-visible circle { stroke-width: 4; }
+.hexedge { stroke: var(--line); stroke-width: 1.5; fill: none; }
+.hexcenter { fill: var(--muted); font-size: 14px; font-family: var(--font-display); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; cursor: pointer; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.pairhead { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.side { border-radius: 10px; padding: 12px 14px; }
+.side.f { background: var(--flex-soft); }
+.side.r { background: var(--rigid-soft); }
+.side .k { font-size: 12px; letter-spacing: .04em; font-weight: 700; }
+.side.f .k { color: var(--flex); }
+.side.r .k { color: var(--rigid); }
+.side h3 { margin: 2px 0 6px; }
+.side .en { font-size: 12px; color: var(--muted); }
+.scene { border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; }
+.scene .k { font-size: 13px; color: var(--muted); font-weight: 500; }
+.itemq { font-size: 15px; }
+.itemq .en { display: block; font-size: 13px; color: var(--muted); }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.facts div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.facts b { display: block; font-family: var(--font-display); font-size: 20px; font-variant-numeric: tabular-nums; }
+.facts span { font-size: 12px; color: var(--muted); }
+ol.howto { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; }
+
+/* assessment */
+.progress { height: 8px; background: var(--band); border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--flex); width: 0; transition: width .2s; }
+.scale-legend { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; font-size: 12px; color: var(--muted); text-align: center; }
+.q { padding: 14px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 10px 20px; align-items: center; }
+.q:first-of-type { border-top: 0; }
+.q .txt { display: flex; gap: 10px; }
+.q .qi { flex: none; color: var(--muted); font-size: 13px; width: 2.2em; text-align: right; padding-top: 2px; font-variant-numeric: tabular-nums; }
+.q .en { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.q.missing .qi { color: var(--warn); font-weight: 700; }
+.opts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; border: 0; margin: 0; padding: 0; }
+.opts legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.opts label { position: relative; display: grid; place-items: center; height: 40px; border: 1.5px solid var(--line); border-radius: 8px; cursor: pointer; font-variant-numeric: tabular-nums; font-weight: 500; background: var(--panel); }
+.opts label:hover { border-color: var(--flex); }
+.opts input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.opts input:checked + span { color: var(--panel); }
+.opts label:has(input:checked) { background: var(--flex); border-color: var(--flex); color: var(--panel); }
+.opts label:has(input:focus-visible) { outline: 3px solid var(--flex); outline-offset: 2px; }
+.pager { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-top: 16px; }
+.dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.dots button { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--panel); cursor: pointer; font-size: 12px; font-variant-numeric: tabular-nums; }
+.dots button.full { background: var(--flex-soft); border-color: var(--flex); color: var(--flex); }
+.dots button[aria-current="step"] { background: var(--flex); border-color: var(--flex); color: var(--panel); }
+.toggle { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--flex); }
+
+/* charts */
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { fill: var(--muted); font-size: 12px; font-family: var(--font-body); }
+.chart .lbl { fill: var(--ink); font-size: 13px; }
+.chart .lbl.comp { font-weight: 700; }
+.chart .val { fill: var(--ink); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .band { fill: var(--band); }
+.chart .mean { stroke: var(--muted); stroke-width: 2; }
+.chart .hit { fill: transparent; cursor: default; }
+.chart .hit:hover { fill: var(--ink); fill-opacity: .04; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; vertical-align: middle; margin-right: 6px; }
+.legend .sw-band { width: 22px; height: 10px; background: var(--band); border-radius: 2px; }
+.legend .sw-mean { width: 2px; height: 14px; background: var(--muted); }
+.legend .sw-f { width: 10px; height: 10px; border-radius: 50%; background: var(--flex); }
+.legend .sw-r { width: 10px; height: 10px; border-radius: 50%; background: var(--rigid); }
+.tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 13px; line-height: 1.5; padding: 8px 10px; border-radius: 6px; max-width: 260px; opacity: 0; transition: opacity .1s; }
+.tip.on { opacity: 1; }
+
+/* reading list */
+.readlist { display: flex; flex-direction: column; gap: 10px; }
+.readrow { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+.readrow:first-child { border-top: 0; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.pill.f { background: var(--flex-soft); color: var(--flex); }
+.pill.r { background: var(--rigid-soft); color: var(--rigid); }
+.pill.n { background: var(--band); color: var(--muted); }
+.pill.good { background: var(--flex-soft); color: var(--good); }
+.pill.warn { background: var(--rigid-soft); color: var(--warn); }
+
+/* practice */
+.pairpick { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.pairpick button { text-align: left; border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-height: 76px; }
+.pairpick button:hover { border-color: var(--flex); }
+.pairpick button[aria-pressed="true"] { border-color: var(--flex); box-shadow: inset 0 0 0 1px var(--flex); }
+.pairpick .a { font-weight: 700; }
+.pairpick .b { font-size: 13px; color: var(--muted); }
+.pairpick .rec { font-size: 12px; color: var(--flex); font-weight: 700; }
+ol.steps-ex { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.acts { display: flex; flex-direction: column; gap: 8px; }
+.act { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.act .cnt { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.act .cnt b { color: var(--flex); font-size: 18px; }
+textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--panel); resize: vertical; }
+.ans { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.ans:first-child { border-top: 0; }
+.ans .bar { height: 10px; background: var(--band); border-radius: 99px; position: relative; }
+.ans .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
+.ans .v { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* progress */
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.t th, table.t td { padding: 8px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: middle; }
+table.t th { font-size: 13px; color: var(--muted); font-weight: 500; border-top: 0; }
+table.t td.r, table.t th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+.confirm { display: none; gap: 10px; align-items: center; flex-wrap: wrap; }
+.confirm.on { display: flex; }
+
+footer { margin-top: 28px; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; max-width: 90ch; }
+footer a { color: var(--flex); }
+
+@media (max-width: 900px) {
+  .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steps { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .steps .t .s { display: none; }
+  .grid-learn, .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .pairpick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .q { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .wrap { padding: 0 16px 40px; }
+  h1 { font-size: 23px; }
+  .steps a { flex-direction: column; gap: 4px; padding: 8px 4px; text-align: center; font-size: 13px; }
+  .pairhead { grid-template-columns: minmax(0, 1fr); }
+  .pairpick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .readrow { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .tile .big { font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>心理靈活性練習儀表板</h1>
+      <p class="sub">以 MPFI 60 題自評找出自己卡住的地方，再用為教學現場設計的小練習逐步提升心理靈活性。</p>
+    </div>
+    <span class="chip" id="storeChip"><span class="dot"></span><span id="storeText">正在載入你的紀錄…</span></span>
+  </header>
+
+  <section class="summary" aria-label="目前狀態">
+    <div class="tile flexstripe">
+      <span class="label">心理靈活性（1–6）</span>
+      <span class="big flex num" id="tFlex">—</span>
+      <span class="note" id="tFlexNote">完成自評後顯示</span>
+    </div>
+    <div class="tile rigidstripe">
+      <span class="label">心理僵化性（1–6）</span>
+      <span class="big rigid num" id="tInflex">—</span>
+      <span class="note" id="tInflexNote">完成自評後顯示</span>
+    </div>
+    <div class="tile">
+      <span class="label">建議先練習</span>
+      <span class="big text" id="tFocus">—</span>
+      <span class="note" id="tFocusNote">依你的分數自動建議</span>
+    </div>
+    <div class="tile">
+      <span class="label">作答紀錄</span>
+      <span class="big text num" id="tCount">尚未作答</span>
+      <span class="note" id="tCountNote">建議每兩週作答一次</span>
+    </div>
+  </section>
+
+  <nav aria-label="學習步驟">
+    <ol class="steps" id="steps">
+      <li><a href="#learn" data-view="learn"><span class="n">1</span><span class="t">認識<span class="s">六個核心歷程</span></span></a></li>
+      <li><a href="#assess" data-view="assess"><span class="n">2</span><span class="t">自評<span class="s">60 題，回想兩週</span></span></a></li>
+      <li><a href="#profile" data-view="profile"><span class="n">3</span><span class="t">剖面<span class="s">看見強項與卡點</span></span></a></li>
+      <li><a href="#practice" data-view="practice"><span class="n">4</span><span class="t">練習<span class="s">兩週微行動</span></span></a></li>
+      <li><a href="#progress" data-view="progress"><span class="n">5</span><span class="t">追蹤<span class="s">比較前後變化</span></span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <!-- 1 LEARN -->
+    <section class="view" id="v-learn" aria-labelledby="h-learn">
+      <div class="grid-learn">
+        <div class="panel stack">
+          <div class="head">
+            <h2 id="h-learn">六角模型：六組相對的歷程</h2>
+            <div class="seg" role="group" aria-label="切換六角">
+              <button type="button" id="hexF" aria-pressed="true">靈活性</button>
+              <button type="button" id="hexR" aria-pressed="false">僵化性</button>
+            </div>
+          </div>
+          <p class="lead small muted">心理靈活性是：帶著困難的想法和感受，仍能覺察當下，並朝自己重視的方向行動。MPFI 把它拆成 6 個靈活性歷程，每一個都有一個相對的僵化性歷程。點選任一個圓圈看說明。</p>
+          <div class="hexwrap" id="hexwrap"></div>
+          <div class="facts">
+            <div><b>60</b><span>題</span></div>
+            <div><b>12</b><span>分量表，每個 5 題</span></div>
+            <div><b>1–6</b><span>從不 → 總是符合</span></div>
+            <div><b>2 週</b><span>回想期間</span></div>
+          </div>
+        </div>
+        <div class="panel stack" id="pairDetail" aria-live="polite"></div>
+      </div>
+      <div class="panel stack" style="margin-top:16px">
+        <h3>怎麼使用這個儀表板</h3>
+        <ol class="howto">
+          <li><b>認識</b>：先讀懂六組歷程，知道量表在問什麼。</li>
+          <li><b>自評</b>：回想過去兩週，完成 60 題。可以分次作答，進度會自動保存。</li>
+          <li><b>剖面</b>：看 12 個分量表的分數，對照原研究樣本的範圍。</li>
+          <li><b>練習</b>：從系統建議或你自選的一組歷程開始，做兩週的小練習。</li>
+          <li><b>追蹤</b>：兩週後再作答，看哪些變化超過測量誤差。</li>
+        </ol>
+        <div class="row"><a class="btn" href="#assess">開始自評</a></div>
+      </div>
+    </section>
+
+    <!-- 2 ASSESS -->
+    <section class="view" id="v-assess" aria-labelledby="h-assess">
+      <div class="panel stack">
+        <div class="head">
+          <h2 id="h-assess">兩週自評</h2>
+          <label class="toggle"><input type="checkbox" id="showEn"> 顯示英文原文</label>
+        </div>
+        <p class="lead">請回想<b>過去兩週</b>，閱讀每一句描述，選出它符合你實際情況的程度。沒有對錯，依第一直覺作答即可。</p>
+        <div class="stack" style="gap:6px">
+          <div class="row" style="justify-content:space-between"><span class="small muted">已完成 <b class="num" id="aDone">0</b> / 60 題</span><span class="small muted" id="aPage">第 1 / 10 頁</span></div>
+          <div class="progress" aria-hidden="true"><i id="aBar"></i></div>
+        </div>
+        <div class="q" style="border-top:0;padding-bottom:0" aria-hidden="true">
+          <span></span>
+          <div class="scale-legend"><span>1<br>從不符合</span><span>2<br>很少符合</span><span>3<br>偶爾符合</span><span>4<br>經常符合</span><span>5<br>非常經常</span><span>6<br>總是符合</span></div>
+        </div>
+        <div id="qList"></div>
+        <div class="pager">
+          <button type="button" class="btn quiet" id="prevPage">上一頁</button>
+          <div class="dots" id="pageDots" aria-label="頁面"></div>
+          <button type="button" class="btn" id="nextPage">下一頁</button>
+        </div>
+        <div class="banner" id="aMsg" hidden></div>
+      </div>
+    </section>
+
+    <!-- 3 PROFILE -->
+    <section class="view" id="v-profile" aria-labelledby="h-profile">
+      <div class="stack">
+        <div class="banner" id="exampleBanner" hidden>這是<b>範例剖面</b>，數字為示範用，不是任何人的作答。完成自評後，這裡會換成你的結果。 <a href="#assess">前往自評</a></div>
+        <div class="panel">
+          <div class="head">
+            <h2 id="h-profile">我的心理靈活性剖面</h2>
+            <span class="small muted" id="profileDate"></span>
+          </div>
+          <p class="lead small muted" style="margin-bottom:14px">左右兩欄同一列是一組相對的歷程。分數為該分量表 5 題的平均（1–6）。灰色區間是原研究樣本平均 ±1 個標準差，只供參考，不是診斷切點。</p>
+          <div class="grid2">
+            <div><h3 style="color:var(--flex);margin-bottom:6px">靈活性歷程</h3><div class="chart" id="chartF"></div></div>
+            <div><h3 style="color:var(--rigid);margin-bottom:6px">僵化性歷程</h3><div class="chart" id="chartR"></div></div>
+          </div>
+          <div class="legend">
+            <span><i class="sw-f"></i>你的靈活性分數</span>
+            <span><i class="sw-r"></i>你的僵化性分數</span>
+            <span><i class="sw-band"></i>原研究樣本平均 ±1 標準差</span>
+            <span><i class="sw-mean"></i>原研究樣本平均</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="head"><h3>逐組解讀</h3><a class="btn ghost" href="#practice">前往練習</a></div>
+          <div class="readlist" id="readList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 PRACTICE -->
+    <section class="view" id="v-practice" aria-labelledby="h-practice">
+      <div class="stack">
+        <div class="panel stack">
+          <div class="head"><h2 id="h-practice">兩週練習</h2><span class="small muted" id="recNote"></span></div>
+          <div class="pairpick" id="pairPick" role="group" aria-label="選擇要練習的歷程"></div>
+        </div>
+        <div class="grid-learn" style="grid-template-columns:minmax(0,6fr) minmax(0,5fr)">
+          <div class="panel stack" id="pracMain"></div>
+          <div class="stack">
+            <div class="panel stack">
+              <h3>兩週微行動</h3>
+              <p class="small muted">每次做到就按一下，次數只存在你自己的紀錄裡。</p>
+              <div class="acts" id="acts"></div>
+            </div>
+            <div class="panel stack">
+              <label for="reflect"><h3>反思筆記</h3></label>
+              <p class="small" id="reflectQ"></p>
+              <textarea id="reflect" placeholder="寫給自己看的，只有你看得到。"></textarea>
+              <span class="small muted" id="reflectSaved"></span>
+            </div>
+            <div class="panel stack">
+              <h3>你在這組題目的回答</h3>
+              <div id="pairAnswers"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 PROGRESS -->
+    <section class="view" id="v-progress" aria-labelledby="h-progress">
+      <div class="stack">
+        <div class="panel">
+          <div class="head"><h2 id="h-progress">變化追蹤</h2><span class="small muted" id="trendNote"></span></div>
+          <div class="chart" id="trendChart"></div>
+          <div class="legend"><span><i class="sw-f"></i>心理靈活性平均</span><span><i class="sw-r"></i>心理僵化性平均</span></div>
+        </div>
+        <div class="panel">
+          <div class="head"><h3>第一次與最近一次的比較</h3><span class="small muted">MDC95＝最小可偵測變化（Rolffs 等，2016）</span></div>
+          <p class="small muted" style="max-width:70ch;margin-bottom:10px">個人分數的變化要達到 MDC95，才較能排除測量誤差、視為真實改變。未達到不代表沒有進步，只是單憑這份量表還無法確定。</p>
+          <div class="scroll" id="changeTable"></div>
+        </div>
+        <div class="panel stack">
+          <h3>作答紀錄</h3>
+          <div class="scroll" id="attemptTable"></div>
+          <div class="row">
+            <button type="button" class="btn ghost" id="copyCsv">複製我的分數（CSV）</button>
+            <button type="button" class="btn quiet" id="retake">再作答一次</button>
+            <button type="button" class="btn quiet" id="wipe">刪除我的所有紀錄</button>
+          </div>
+          <div class="confirm" id="wipeConfirm"><span class="small">確定刪除所有作答、練習次數和筆記？刪除後無法復原。</span><button type="button" class="btn" id="wipeYes" style="background:var(--rigid);border-color:var(--rigid)">確定刪除</button><button type="button" class="btn quiet" id="wipeNo">取消</button></div>
+          <textarea id="csvBox" hidden readonly aria-label="CSV 內容"></textarea>
+          <span class="small muted" id="copyMsg"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><b>量表出處</b>：Rolffs, J. L., Rogge, R. D., &amp; Wilson, K. G. (2018). Disentangling components of flexibility via the Hexaflex model: Development and validation of the Multidimensional Psychological Flexibility Inventory (MPFI). <i>Assessment, 25</i>(4), 458–482. <a href="https://doi.org/10.1177/1073191116645905">doi:10.1177/1073191116645905</a>（2016 年線上優先刊出）。60 題英文題目依該文 Table 3；作答量尺與兩週回想期間依其方法段落；分量表常模與 MDC95 依 Table 7（美國線上樣本，研究二、三）。</p>
+    <p><b>中文說明</b>：60 題的中文為本工具翻譯，尚未經信效度驗證。已出版的中文版僅有 24 題短版（Fang 等，2024，<i>Journal of Contextual Behavioral Science, 33</i>, 100805）。題目呈現順序為本工具固定排列，非原量表的施測順序。「原研究樣本平均」取男、女平均值的中間數。</p>
+    <p><b>練習內容</b>：改寫自接納與承諾治療（ACT）及正念取向的常見練習，並加入教學現場情境，不屬於原量表。本工具用於自我覺察與專業成長，不是診斷。若你感到持續的低落或困擾，請聯繫學校輔導室或心理專業人員。</p>
+  </footer>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Scale content (Rolffs et al., Table 3 item set; Table 7 norms) ---------- */
+  var SUB = {
+    ACC: { zh: "接納", en: "Acceptance", side: "f", n: { m: [3.5, 1.0], w: [3.4, 1.0] }, mdc: 1.54, items: [
+      ["I made room to fully experience negative thoughts and emotions, breathing them in rather than pushing them away.", "我騰出空間充分體驗負面的想法和情緒，把它們吸納進來，而不是推開。"],
+      ["When I had an upsetting thought or emotion, I tried to give it space rather than ignoring it.", "當我有令人不安的想法或情緒時，我試著給它空間，而不是忽視它。"],
+      ["I was receptive to observing unpleasant thoughts and feelings without interfering with them.", "我願意觀察不愉快的想法和感受，而不去干預它們。"],
+      ["I tried to make peace with my negative thoughts and feelings rather than resisting them.", "我試著與自己的負面想法和感受和平共處，而不是抗拒它們。"],
+      ["I opened myself to all of my feelings, the good and the bad.", "我向自己所有的感受敞開，無論好壞。"]] },
+    PMA: { zh: "當下覺察", en: "Present Moment Awareness", side: "f", n: { m: [3.9, 1.0], w: [3.8, 1.0] }, mdc: 1.70, items: [
+      ["I paid close attention to what I was thinking and feeling.", "我密切注意自己正在想什麼、感受什麼。"],
+      ["I was attentive and aware of my emotions.", "我留意並覺察自己的情緒。"],
+      ["I was in touch with the ebb and flow of my thoughts and feelings.", "我能貼近自己想法與感受的起伏消長。"],
+      ["I was in tune with my thoughts and feelings from moment to moment.", "我時時刻刻與自己的想法和感受同步。"],
+      ["I strived to remain mindful and aware of my own thoughts and emotions.", "我努力對自己的想法和情緒保持正念與覺察。"]] },
+    SAC: { zh: "以己為脈絡", en: "Self as Context", side: "f", n: { m: [4.0, 1.0], w: [4.0, 1.0] }, mdc: 1.48, items: [
+      ["I tried to keep perspective even when life knocked me down.", "即使人生將我擊倒，我仍試著保持客觀的視角。"],
+      ["When I was scared or afraid, I still tried to see the larger picture.", "當我感到害怕或恐懼時，我仍試著看見更大的全貌。"],
+      ["Even when I felt hurt or upset, I tried to maintain a broader perspective.", "即使感到受傷或難過，我仍試著保持更寬廣的視角。"],
+      ["When something painful happened, I tried to take a balanced view of the situation.", "當痛苦的事情發生時，我試著用平衡的觀點看待情境。"],
+      ["I carried myself through tough moments by seeing my life from a larger viewpoint.", "我藉由從更大的視野看待自己的人生，撐過艱難時刻。"]] },
+    DEF: { zh: "脫鉤", en: "Defusion", side: "f", n: { m: [3.6, 1.1], w: [3.4, 1.0] }, mdc: 1.57, items: [
+      ["I was able to let negative feelings come and go without getting caught up in them.", "我能讓負面感受來來去去，而不被它們困住。"],
+      ["When I was upset, I was able to let those negative feelings pass through me without clinging to them.", "當我難過時，我能讓那些負面感受從我身上流過，而不緊抓著它們。"],
+      ["When I was scared or afraid, I was able to gently experience those feelings, allowing them to pass.", "當我感到害怕或恐懼時，我能溫和地體驗這些感受，並允許它們過去。"],
+      ["I was able to step back and notice negative thoughts and feelings without reacting to them.", "我能退後一步，注意到負面的想法和感受，而不對它們起反應。"],
+      ["In tough situations, I was able to notice my thoughts and feelings without getting overwhelmed by them.", "在艱難的情境中，我能注意到自己的想法和感受，而不被它們淹沒。"]] },
+    VAL: { zh: "價值", en: "Values", side: "f", n: { m: [4.1, 1.1], w: [4.1, 1.0] }, mdc: 1.48, items: [
+      ["I was very in touch with what is important to me and my life.", "我非常清楚什麼對我和我的人生是重要的。"],
+      ["I tried to connect with what is truly important to me on a daily basis.", "我每天都試著與對我真正重要的事物連結。"],
+      ["I stuck to my deeper priorities in life.", "我堅守自己人生中更深層的優先順序。"],
+      ["Even when it meant making tough choices, I still tried to prioritize the things that were important to me.", "即使這意味著要做艱難的抉擇，我仍試著優先處理對我重要的事。"],
+      ["My deeper values consistently gave direction to my life.", "我更深層的價值一直為我的人生指引方向。"]] },
+    CA: { zh: "承諾行動", en: "Committed Action", side: "f", n: { m: [4.1, 1.1], w: [4.1, 1.0] }, mdc: 1.66, items: [
+      ["Even when I stumbled in my efforts, I didn't quit working toward what is important.", "即使努力的過程跌跌撞撞，我也沒有放棄朝重要的事努力。"],
+      ["Even when times got tough, I was still able to take steps toward what I value in life.", "即使在艱困時期，我仍能朝人生中重視的事物邁出步伐。"],
+      ["Even when life got stressful and hectic, I still worked toward things that were important to me.", "即使生活充滿壓力又忙亂，我仍持續朝對我重要的事情努力。"],
+      ["I didn't let setbacks slow me down in taking action toward what I really want in life.", "我沒有讓挫折拖慢我朝人生真正想要的事物採取行動。"],
+      ["I didn't let my own fears and doubts get in the way of taking action toward my goals.", "我沒有讓自己的恐懼和懷疑妨礙我朝目標採取行動。"]] },
+    EA: { zh: "經驗迴避", en: "Experiential Avoidance", side: "r", n: { m: [3.0, 1.1], w: [3.2, 1.0] }, mdc: 1.55, items: [
+      ["When I had a bad memory, I tried to distract myself to make it go away.", "當我有不好的回憶時，我試著讓自己分心，好讓它消失。"],
+      ["When unpleasant memories came to me, I tried to put them out of my mind.", "當不愉快的回憶浮現時，我試著把它們拋到腦後。"],
+      ["I tried to distract myself when I felt unpleasant emotions.", "當我感到不愉快的情緒時，我試著讓自己分心。"],
+      ["When something upsetting came up, I tried very hard to stop thinking about it.", "當令人不安的事浮現時，我非常努力地不去想它。"],
+      ["If there was something I didn't want to think about, I would try many things to get it out of my mind.", "如果有我不想去想的事，我會嘗試各種方法把它趕出腦海。"]] },
+    LCPM: { zh: "缺乏與當下接觸", en: "Lack of Contact with the Present Moment", side: "r", n: { m: [2.5, 1.1], w: [2.6, 1.1] }, mdc: 1.69, items: [
+      ["I did most things on “automatic” with little awareness of what I was doing.", "我做大多數事情都處於「自動」模式，對自己在做什麼幾乎沒有覺察。"],
+      ["I went through most days on autopilot without paying much attention to what I was thinking or feeling.", "我大多數的日子都像開著自動駕駛般度過，沒有太注意自己在想什麼或感受什麼。"],
+      ["I floated through most days without paying much attention.", "我大多數的日子都渾渾噩噩地度過，沒有太注意。"],
+      ["I did most things mindlessly without paying much attention.", "我做大多數事情都心不在焉，沒有太注意。"],
+      ["Most of the time, I was just going through the motions without paying much attention.", "大多數時候，我只是照表操課，沒有太注意。"]] },
+    SCT: { zh: "以己為內容", en: "Self as Content", side: "r", n: { m: [2.6, 1.2], w: [2.7, 1.2] }, mdc: 1.46, items: [
+      ["I thought some of my emotions were bad or inappropriate and I shouldn't feel them.", "我認為自己的某些情緒是不好或不恰當的，我不應該有這些感受。"],
+      ["I believed some of my thoughts are abnormal or bad and I shouldn't think that way.", "我相信自己的某些想法是不正常或不好的，我不應該那樣想。"],
+      ["I told myself that I shouldn't be feeling the way I'm feeling.", "我告訴自己，我不應該有現在這樣的感受。"],
+      ["I told myself I shouldn't be thinking the way I was thinking.", "我告訴自己，我不應該有那樣的想法。"],
+      ["I criticized myself for having irrational or inappropriate emotions.", "我因為自己有不理性或不恰當的情緒而批評自己。"]] },
+    FUS: { zh: "融合", en: "Fusion", side: "r", n: { m: [2.8, 1.3], w: [3.0, 1.3] }, mdc: 1.47, items: [
+      ["Negative thoughts and feelings tended to stick with me for a long time.", "負面的想法和感受往往在我心裡停留很久。"],
+      ["Distressing thoughts tended to spin around in my mind like a broken record.", "令人苦惱的想法往往像跳針的唱片一樣在我腦中打轉。"],
+      ["It was very easy to get trapped into unwanted thoughts and feelings.", "我很容易陷入不想要的想法和感受之中。"],
+      ["When I had negative thoughts or feelings, it was very hard to see past them.", "當我有負面想法或感受時，我很難看到它們以外的事物。"],
+      ["When something bad happened, it was hard for me to stop thinking about it.", "當不好的事情發生時，我很難停止去想它。"]] },
+    LCV: { zh: "缺乏與價值接觸", en: "Lack of Contact with Values", side: "r", n: { m: [2.6, 1.0], w: [2.5, 0.9] }, mdc: 1.52, items: [
+      ["My priorities and values often fell by the wayside in my day-to-day life.", "在日常生活中，我的優先事項和價值常被擱置一旁。"],
+      ["The things that I value the most often fell off my priority list completely.", "我最重視的事物常常完全從我的優先清單中消失。"],
+      ["When life got hectic, I often lost touch with the things I value.", "當生活變得忙亂時，我常與自己重視的事物失去連結。"],
+      ["I didn't usually have time to focus on the things that are really important to me.", "我通常沒有時間專注在對我真正重要的事情上。"],
+      ["When times got tough, it was easy to forget about what I truly value.", "當處境艱難時，我很容易忘記自己真正重視的是什麼。"]] },
+    INA: { zh: "無行動", en: "Inaction", side: "r", n: { m: [2.5, 1.1], w: [2.5, 1.1] }, mdc: 1.33, items: [
+      ["Negative feelings often trapped me in inaction.", "負面感受常讓我困在無所作為之中。"],
+      ["Getting upset left me stuck and inactive.", "心煩意亂讓我卡住、動彈不得。"],
+      ["Negative feelings easily stalled out my plans.", "負面感受很容易讓我的計畫停擺。"],
+      ["Negative experiences derailed me from what's really important.", "負面經驗讓我偏離了真正重要的事。"],
+      ["Unpleasant thoughts and feelings easily overwhelmed my efforts to deepen my life.", "不愉快的想法和感受很容易壓垮我讓生活更有深度的努力。"]] }
+  };
+  var COMP = {
+    FLEX: { zh: "心理靈活性", en: "Global Flexibility", side: "f", n: { m: [3.9, 0.9], w: [3.8, 0.8] }, mdc: 1.14 },
+    INFLEX: { zh: "心理僵化性", en: "Global Inflexibility", side: "r", n: { m: [2.7, 0.9], w: [2.7, 0.9] }, mdc: 0.90 }
+  };
+  var FLEXK = ["ACC", "PMA", "SAC", "DEF", "VAL", "CA"];
+  var RIGK = ["EA", "LCPM", "SCT", "FUS", "LCV", "INA"];
+
+  /* Pair guidance written for teachers; adapted from common ACT / mindfulness exercises (not part of the scale). */
+  var PAIRS = [
+    { f: "ACC", r: "EA",
+      fd: "願意為不舒服的想法、情緒和身體感覺騰出空間，不急著壓下或趕走它們。",
+      rd: "想盡辦法逃開、壓抑或分心，讓不舒服的內在經驗消失。短期鬆一口氣，長期常讓生活範圍越縮越小。",
+      scene: "公開授課前一晚很焦慮，你整晚滑手機、刻意不去想明天，結果教案沒有再順一次。",
+      ex: { name: "騰出空間（約 3 分鐘）", steps: [
+        "找出身體哪個部位對這份情緒最有感覺，例如胸口、肩頸或胃。",
+        "像好奇的觀察者一樣描述它：形狀、溫度、範圍、是否在移動。",
+        "吸氣時想像氣息流到那裡，在感覺周圍打開一點空間。",
+        "對自己說：「我不喜歡這種感覺，但我可以讓它待在這裡。」",
+        "帶著這份感覺，去做下一件該做的事。"] },
+      acts: ["不舒服時，先停 30 秒觀察感覺，再決定要不要分心", "備課或改作業卡住時，先寫下當下情緒的名稱", "一件拖延中的教學工作，帶著緊張先做 10 分鐘"],
+      q: "這兩週，你最常用什麼方式躲開不舒服的感覺？它讓你付出了什麼代價？" },
+    { f: "PMA", r: "LCPM",
+      fd: "有彈性地把注意力放在此時此地，包括外在環境，也包括自己內在的想法和感受。",
+      rd: "處在自動導航，做事時心不在焉，事後幾乎想不起過程，也沒注意到自己的狀態。",
+      scene: "上完一整天的課回到辦公室，想不起剛才哪位學生說了什麼，也說不出自己現在的感覺。",
+      ex: { name: "三分鐘呼吸空間", steps: [
+        "第 1 分鐘・覺察：此刻有哪些想法、情緒、身體感覺？只是點名，不需要改變。",
+        "第 2 分鐘・集中：把注意力收到呼吸，跟著每一次吸氣和吐氣。",
+        "第 3 分鐘・擴展：把覺察擴大到整個身體，再到教室或辦公室裡的聲音。"] },
+      acts: ["上課鐘響前，做一次三分鐘呼吸空間", "每天挑一節課，刻意注意三位學生的表情和語氣", "午餐的前三口慢慢吃，只注意味道和口感"],
+      q: "一天之中，哪些時段你最常處在「自動導航」？" },
+    { f: "SAC", r: "SCT",
+      fd: "能從更大的視角看待自己的經驗：想法和情緒在我之中來去，而我不等於它們。",
+      rd: "評判自己的想法和情緒是錯的、不正常的、不應該有的，並因此批評自己。",
+      scene: "學生在課堂上頂撞你，你氣到發抖。下班後一直責怪自己：「當老師怎麼可以這麼生氣。」",
+      ex: { name: "天空與天氣", steps: [
+        "回想最近一個讓你難受的教學時刻。",
+        "把當時的想法和情緒想像成天氣：雷雨、烏雲或強風。",
+        "留意：天氣一直在變，而天空一直都在，容納著所有天氣。",
+        "問自己：「那個注意到這些天氣的我，此刻在哪裡？」",
+        "用第三人稱寫一句話，例如：「這位老師那天很生氣，這是在乎學生的人會有的反應。」"] },
+      acts: ["出現「我不應該有這種感覺」時，改說「我注意到我正在評判自己的感覺」", "每天寫下一件今天教學中做得還不錯的小事", "用「十年後的自己」的角度，看一件今天的煩惱"],
+      q: "你最常對自己的哪一種情緒或想法說「不應該」？" },
+    { f: "DEF", r: "FUS",
+      fd: "能後退一步看著想法，把它當成「腦中的一句話」，不必照單全收，也不必和它爭辯。",
+      rd: "被想法和情緒黏住，在腦中反覆打轉，把想法當成事實，很難看見其他可能。",
+      scene: "家長在群組留言質疑你的作業規定，那段話整晚都在你腦中重播。",
+      ex: { name: "「我注意到我有一個想法」", steps: [
+        "寫下最困擾你的一句想法，例如「我不是一個好老師」。",
+        "在前面加上「我有一個想法：」，再讀一次。",
+        "再加一層：「我注意到我有一個想法：……」，再讀一次。",
+        "比較這三句話帶給你的感覺有什麼不同。",
+        "替這類想法取個名字，例如「又是『不夠好』的故事」。下次它出現時，認出它就好。"] },
+      acts: ["開始反芻時，說出是哪個「故事」又來了", "讀完讓你不舒服的家長或同事訊息，等 10 分鐘再回覆", "把一個反覆出現的想法，用很慢的速度在心裡唸一遍"],
+      q: "哪一句想法最常像跳針的唱片一樣在你腦中重播？" },
+    { f: "VAL", r: "LCV",
+      fd: "清楚自己在乎什麼、想成為什麼樣的人。價值像指南針，指出方向，不是要抵達的終點。",
+      rd: "生活一忙亂，重要的事就被擱置，日子被急事推著走，忘了自己真正重視的是什麼。",
+      scene: "期末的行政、表單和會議塞滿行事曆，你已經很久沒有好好和一位學生談話。",
+      ex: { name: "十年後的學生", steps: [
+        "想像十年後，一位畢業生和朋友聊起你這位老師。",
+        "你最希望他怎麼形容你？寫下三個詞。",
+        "把三個詞轉成價值，例如「讓我被理解」→ 理解，「讓我敢嘗試」→ 勇氣。",
+        "替每個價值寫一個這週做得到的小行為。"] },
+      acts: ["把三個價值詞寫在便利貼，貼在備課的地方", "睡前問自己：今天哪一刻，我活出了其中一個價值？", "每週保留 15 分鐘，做一件與價值一致、但不緊急的事"],
+      q: "這兩週，你的時間主要花在哪裡？它和你重視的事距離多遠？" },
+    { f: "CA", r: "INA",
+      fd: "即使有困難、挫折或不舒服，仍朝重視的方向一步步採取行動；跌倒了，再回到路上。",
+      rd: "負面感受一出現，計畫就停擺、卡住，或被帶離真正重要的事。",
+      scene: "想在課堂試一個新的討論活動，但怕學生不配合、怕秩序失控，於是一拖再拖。",
+      ex: { name: "最小的一步", steps: [
+        "選一個與你的價值相連的教學目標。",
+        "把它拆小，小到五分鐘內做得到。",
+        "預先寫下可能冒出來的阻礙想法或感受。",
+        "對自己說：「我可以帶著這個想法，仍然去做。」",
+        "寫下時間和地點，然後去做。做完記下結果，不論成功與否。"] },
+      acts: ["本週完成一個五分鐘、與價值一致的行動", "計畫停擺時，問自己：現在最小的一步是什麼？", "失敗一次後，24 小時內再試一次更小的版本"],
+      q: "這兩週，哪一種感受最常讓你的計畫停擺？" }
+  ];
+  var HEXPOS = ["PMA", "VAL", "CA", "SAC", "DEF", "ACC"]; // top, then clockwise
+  var PAIR_OF = {};
+  PAIRS.forEach(function (p, i) { PAIR_OF[p.f] = i; PAIR_OF[p.r] = i; });
+
+  /* Example profile shown only before the first attempt; clearly labelled on screen. */
+  var EXAMPLE = { ACC: 3.0, PMA: 4.2, SAC: 3.6, DEF: 2.8, VAL: 4.4, CA: 3.8, EA: 3.8, LCPM: 2.4, SCT: 3.4, FUS: 4.0, LCV: 2.8, INA: 2.6 };
+
+  /* ---------- item order: fixed seeded shuffle ---------- */
+  var ITEMS = [];
+  Object.keys(SUB).forEach(function (k) { SUB[k].items.forEach(function (it, i) { ITEMS.push({ id: k + (i + 1), sub: k, en: it[0], zh: it[1] }); }); });
+  (function shuffle(arr, seed) {
+    function rnd() { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+    for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; }
+  })(ITEMS, 20160);
+  var PER_PAGE = 6, PAGES = ITEMS.length / PER_PAGE;
+
+  /* ---------- helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function el(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === "text") e.textContent = attrs[k];
+      else if (k === "html") e.innerHTML = attrs[k];
+      else if (k === "cls") e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, text) {
+    var e = document.createElementNS(SVGNS, tag);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function f1(x) { return (Math.round(x * 100) / 100).toFixed(2); }
+  function fmtDate(iso) { var d = new Date(iso); return d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate(); }
+  function ref(k) { var d = SUB[k] || COMP[k]; return { mean: (d.n.m[0] + d.n.w[0]) / 2, sd: (d.n.m[1] + d.n.w[1]) / 2 }; }
+  function nameOf(k) { return (SUB[k] || COMP[k]).zh; }
+
+  function scoreOf(ans) {
+    var s = {}, ok = true;
+    Object.keys(SUB).forEach(function (k) {
+      var vals = [];
+      for (var i = 1; i <= 5; i++) { var v = ans[k + i]; if (v) vals.push(v); }
+      if (vals.length === 5) s[k] = vals.reduce(function (a, b) { return a + b; }, 0) / 5; else ok = false;
+    });
+    if (!ok) return null;
+    s.FLEX = FLEXK.reduce(function (a, k) { return a + s[k]; }, 0) / 6;
+    s.INFLEX = RIGK.reduce(function (a, k) { return a + s[k]; }, 0) / 6;
+    return s;
+  }
+  function needOf(s, pi) {
+    var p = PAIRS[pi], rf = ref(p.f), rr = ref(p.r);
+    return (rf.mean - s[p.f]) / rf.sd + (s[p.r] - rr.mean) / rr.sd;
+  }
+  function recommend(s) {
+    if (!s) return -1;
+    var best = 0, bv = -Infinity;
+    PAIRS.forEach(function (_, i) { var v = needOf(s, i); if (v > bv) { bv = v; best = i; } });
+    return best;
+  }
+  function band(k, v) {
+    var r = ref(k), lo = r.mean - r.sd, hi = r.mean + r.sd;
+    if (v < lo) return "low"; if (v > hi) return "high"; return "mid";
+  }
+
+  /* ---------- state & storage ---------- */
+  var LS_KEY = "mpfi60-dashboard-v1";
+  var state = { attempts: [], draft: { answers: {}, page: 0 }, practice: { pair: null, counts: {}, notes: {} }, showEn: false, updatedAt: 0 };
+  var mode = "memory"; // memory | local | db
+  var dbRef = null, saveTimer = null, saving = false, pendingSave = false;
+
+  function setChip(kind, text) {
+    $("storeChip").className = "chip " + (kind || "");
+    $("storeText").textContent = text;
+  }
+  function normalize(o) {
+    var s = { attempts: [], draft: { answers: {}, page: 0 }, practice: { pair: null, counts: {}, notes: {} }, showEn: false, updatedAt: 0 };
+    if (!o || typeof o !== "object") return s;
+    if (Array.isArray(o.attempts)) s.attempts = o.attempts.filter(function (a) { return a && a.answers && a.date; });
+    if (o.draft && typeof o.draft === "object") { s.draft.answers = o.draft.answers || {}; s.draft.page = +o.draft.page || 0; }
+    if (o.practice && typeof o.practice === "object") { s.practice.pair = (o.practice.pair == null ? null : +o.practice.pair); s.practice.counts = o.practice.counts || {}; s.practice.notes = o.practice.notes || {}; }
+    s.showEn = !!o.showEn; s.updatedAt = +o.updatedAt || 0;
+    return s;
+  }
+  function loadLocal() { try { var raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
+  function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); return true; } catch (e) { return false; } }
+
+  function save() {
+    state.updatedAt = Date.now();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 700);
+  }
+  function flush() {
+    if (mode === "db" && dbRef) {
+      if (saving) { pendingSave = true; return; }
+      saving = true;
+      dbRef.set(JSON.parse(JSON.stringify(state))).then(function () {
+        saving = false; setChip("ok", "已存到你的私人紀錄（只有你看得到）");
+        if (pendingSave) { pendingSave = false; flush(); }
+      }, function (err) {
+        saving = false;
+        mode = saveLocal() ? "local" : "memory";
+        setChip("warn", mode === "local" ? "無法存到帳號，改存在這個瀏覽器" : "目前無法儲存，關閉頁面後紀錄會消失");
+      });
+    } else if (mode === "local") {
+      if (!saveLocal()) { mode = "memory"; setChip("warn", "目前無法儲存，關閉頁面後紀錄會消失"); }
+    }
+  }
+
+  function initStorage() {
+    var local = loadLocal();
+    if (local) { state = normalize(local); mode = "local"; setChip("", "紀錄存在這個瀏覽器"); }
+    else {
+      try { localStorage.setItem(LS_KEY + "-t", "1"); localStorage.removeItem(LS_KEY + "-t"); mode = "local"; setChip("", "紀錄存在這個瀏覽器"); }
+      catch (e) { mode = "memory"; setChip("warn", "目前無法儲存，關閉頁面後紀錄會消失"); }
+    }
+    renderAll();
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    Promise.all([window.claude.use("user"), window.claude.use("db")]).then(function (r) {
+      var user = r[0], db = r[1];
+      if (!user || !db) return null;
+      return user.id().then(function (uid) {
+        if (!uid) return null;
+        var d = db.doc("data/users/" + uid + "/mpfi60");
+        var timed = new Promise(function (_, rej) { setTimeout(function () { rej({ code: "timeout" }); }, 10000); });
+        return Promise.race([d.get(), timed]).then(function (snap) { return { ref: d, snap: snap }; });
+      });
+    }).then(function (res) {
+      if (!res) return;
+      dbRef = res.ref; mode = "db";
+      var remote = res.snap.exists ? normalize(res.snap.data()) : null;
+      var hadLocal = state.attempts.length || Object.keys(state.draft.answers).length;
+      if (remote && remote.updatedAt >= state.updatedAt) { state = remote; }
+      setChip("ok", "已存到你的私人紀錄（只有你看得到）");
+      if (!remote || remote.updatedAt < state.updatedAt) { if (hadLocal) flush(); }
+      try { localStorage.removeItem(LS_KEY); } catch (e) {}
+      renderAll();
+    }).catch(function () { /* keep browser storage */ });
+  }
+
+  /* ---------- routing ---------- */
+  var VIEWS = ["learn", "assess", "profile", "practice", "progress"];
+  var current = "learn";
+  function route() {
+    var h = (location.hash || "").replace("#", "");
+    current = VIEWS.indexOf(h) >= 0 ? h : "learn";
+    VIEWS.forEach(function (v) { $("v-" + v).classList.toggle("on", v === current); });
+    Array.prototype.forEach.call(document.querySelectorAll("#steps a"), function (a) {
+      if (a.getAttribute("data-view") === current) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    renderView();
+  }
+
+  /* ---------- summary & steps ---------- */
+  function latest() { return state.attempts.length ? state.attempts[state.attempts.length - 1] : null; }
+  function latestScores() { var a = latest(); return a ? scoreOf(a.answers) : null; }
+
+  function renderSummary() {
+    var s = latestScores(), a = latest();
+    if (s) {
+      $("tFlex").textContent = f1(s.FLEX);
+      $("tInflex").textContent = f1(s.INFLEX);
+      var rf = ref("FLEX"), ri = ref("INFLEX");
+      $("tFlexNote").textContent = "原研究樣本平均 " + rf.mean.toFixed(2) + "（越高越常出現）";
+      $("tInflexNote").textContent = "原研究樣本平均 " + ri.mean.toFixed(2) + "（越高越常出現）";
+      var pi = recommend(s);
+      $("tFocus").textContent = nameOf(PAIRS[pi].f) + " ↔ " + nameOf(PAIRS[pi].r);
+      $("tFocusNote").textContent = "成長空間相對最大的一組";
+      $("tCount").textContent = state.attempts.length + " 次";
+      $("tCountNote").textContent = "最近一次：" + fmtDate(a.date);
+    } else {
+      $("tFlex").textContent = "—"; $("tInflex").textContent = "—";
+      $("tFlexNote").textContent = "完成自評後顯示"; $("tInflexNote").textContent = "完成自評後顯示";
+      $("tFocus").textContent = "—"; $("tFocusNote").textContent = "依你的分數自動建議";
+      var n = Object.keys(state.draft.answers).length;
+      $("tCount").textContent = n ? "作答中" : "尚未作答";
+      $("tCountNote").textContent = n ? "已完成 " + n + " / 60 題" : "建議每兩週作答一次";
+    }
+    var done = { learn: true, assess: !!s, profile: !!s, practice: Object.keys(state.practice.counts).some(function (k) { return (state.practice.counts[k] || []).length; }), progress: state.attempts.length > 1 };
+    Array.prototype.forEach.call(document.querySelectorAll("#steps li"), function (li) {
+      var v = li.firstElementChild.getAttribute("data-view");
+      li.firstElementChild.classList.toggle("done", !!done[v] && v !== "learn");
+    });
+  }
+
+  /* ---------- 1 learn ---------- */
+  var hexSide = "f", hexSel = 0;
+  function renderHex() {
+    var wrap = $("hexwrap"); wrap.innerHTML = ""; wrap.classList.toggle("rigid", hexSide === "r");
+    var s = latestScores();
+    var W = 420, H = 380, cx = 210, cy = 190, R = 138;
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "group", "aria-label": hexSide === "f" ? "靈活性六角" : "僵化性六角" });
+    var pts = HEXPOS.map(function (_, i) { var a = (-90 + i * 60) * Math.PI / 180; return [cx + R * Math.cos(a), cy + R * Math.sin(a)]; });
+    svg.appendChild(sv("polygon", { points: pts.map(function (p) { return p.join(","); }).join(" "), "class": "hexedge" }));
+    pts.forEach(function (p, i) { for (var j = i + 2; j < pts.length; j++) { if (i === 0 && j === 5) continue; svg.appendChild(sv("line", { x1: p[0], y1: p[1], x2: pts[j][0], y2: pts[j][1], "class": "hexedge", "stroke-dasharray": "2 5" })); } });
+    svg.appendChild(sv("text", { x: cx, y: cy + 5, "text-anchor": "middle", "class": "hexcenter" }, hexSide === "f" ? "心理靈活性" : "心理僵化性"));
+    HEXPOS.forEach(function (fk, i) {
+      var pi = PAIR_OF[fk], k = hexSide === "f" ? fk : PAIRS[pi].r, p = pts[i];
+      var g = sv("g", { "class": "hexnode" + (pi === hexSel ? " sel" : ""), tabindex: "0", role: "button", "aria-pressed": pi === hexSel ? "true" : "false", "aria-label": nameOf(k) });
+      g.appendChild(sv("circle", { cx: p[0], cy: p[1], r: 44 }));
+      var label = nameOf(k), y = p[1] + (s ? -2 : 5);
+      if (label.length > 5) {
+        g.appendChild(sv("text", { x: p[0], y: y - 8, "text-anchor": "middle" }, label.slice(0, 3)));
+        g.appendChild(sv("text", { x: p[0], y: y + 8, "text-anchor": "middle" }, label.slice(3)));
+        y += 8;
+      } else g.appendChild(sv("text", { x: p[0], y: y, "text-anchor": "middle" }, label));
+      if (s) g.appendChild(sv("text", { x: p[0], y: y + 16, "text-anchor": "middle", "class": "sc" }, f1(s[k])));
+      function pick() { hexSel = pi; renderHex(); renderPairDetail(); }
+      g.addEventListener("click", pick);
+      g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+      svg.appendChild(g);
+    });
+    wrap.appendChild(svg);
+    $("hexF").setAttribute("aria-pressed", hexSide === "f"); $("hexR").setAttribute("aria-pressed", hexSide === "r");
+  }
+  function renderPairDetail() {
+    var p = PAIRS[hexSel], box = $("pairDetail"); box.innerHTML = "";
+    var s = latestScores();
+    var head = el("div", { cls: "pairhead" }, [
+      el("div", { cls: "side f" }, [el("div", { cls: "k", text: "靈活性" }), el("h3", { text: nameOf(p.f) }), el("div", { cls: "en", text: SUB[p.f].en }), el("p", { cls: "small", text: p.fd }),
+        s ? el("p", { cls: "small", html: "你的分數：<b class=\"num\">" + f1(s[p.f]) + "</b>" }) : null]),
+      el("div", { cls: "side r" }, [el("div", { cls: "k", text: "僵化性" }), el("h3", { text: nameOf(p.r) }), el("div", { cls: "en", text: SUB[p.r].en }), el("p", { cls: "small", text: p.rd }),
+        s ? el("p", { cls: "small", html: "你的分數：<b class=\"num\">" + f1(s[p.r]) + "</b>" }) : null])
+    ]);
+    box.appendChild(head);
+    box.appendChild(el("div", { cls: "scene" }, [el("div", { cls: "k", text: "在教學現場，可能長這樣" }), el("p", { text: p.scene })]));
+    var ex = el("div", { cls: "stack", style: "gap:8px" }, [el("h3", { text: "量表怎麼問（各舉一題）" })]);
+    [[p.f, 0], [p.r, 0]].forEach(function (x) {
+      var it = SUB[x[0]].items[x[1]];
+      ex.appendChild(el("p", { cls: "itemq" }, [el("span", { cls: "pill " + SUB[x[0]].side, text: nameOf(x[0]) }), " " + it[1], el("span", { cls: "en", text: it[0] })]));
+    });
+    box.appendChild(ex);
+    box.appendChild(el("div", { cls: "row" }, [el("a", { cls: "btn ghost", href: "#practice", "data-pair": String(hexSel), text: "看這組的練習" })]));
+    box.querySelector("[data-pair]").addEventListener("click", function () { state.practice.pair = hexSel; save(); });
+  }
+
+  /* ---------- 2 assess ---------- */
+  function renderAssess() {
+    var ans = state.draft.answers, page = Math.min(Math.max(state.draft.page, 0), PAGES - 1);
+    $("showEn").checked = state.showEn;
+    var list = $("qList"); list.innerHTML = "";
+    ITEMS.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE).forEach(function (it, j) {
+      var idx = page * PER_PAGE + j + 1;
+      var q = el("div", { cls: "q", id: "q-" + it.id });
+      q.appendChild(el("div", { cls: "txt" }, [el("span", { cls: "qi", text: String(idx) }), el("span", {}, [it.zh, state.showEn ? el("span", { cls: "en", text: it.en }) : null])]));
+      var fs = el("fieldset", { cls: "opts" }, [el("legend", { text: "第 " + idx + " 題" })]);
+      for (var v = 1; v <= 6; v++) {
+        var inp = el("input", { type: "radio", name: "r-" + it.id, value: String(v), id: "r-" + it.id + "-" + v, "aria-label": v + " 分" });
+        if (ans[it.id] === v) inp.checked = true;
+        inp.addEventListener("change", (function (id, val) { return function () { state.draft.answers[id] = val; var qq = $("q-" + id); if (qq) qq.classList.remove("missing"); save(); updateAssessMeta(); }; })(it.id, v));
+        fs.appendChild(el("label", { "for": "r-" + it.id + "-" + v }, [inp, el("span", { text: String(v) })]));
+      }
+      q.appendChild(fs);
+      list.appendChild(q);
+    });
+    var dots = $("pageDots"); dots.innerHTML = "";
+    for (var p = 0; p < PAGES; p++) {
+      var b = el("button", { type: "button", text: String(p + 1), "aria-label": "第 " + (p + 1) + " 頁" });
+      if (p === page) b.setAttribute("aria-current", "step");
+      b.addEventListener("click", (function (pp) { return function () { goPage(pp); }; })(p));
+      dots.appendChild(b);
+    }
+    $("prevPage").disabled = page === 0;
+    $("aMsg").hidden = true;
+    updateAssessMeta();
+  }
+  function pageFull(p) { return ITEMS.slice(p * PER_PAGE, p * PER_PAGE + PER_PAGE).every(function (it) { return state.draft.answers[it.id]; }); }
+  function updateAssessMeta() {
+    var n = ITEMS.filter(function (it) { return state.draft.answers[it.id]; }).length, page = state.draft.page;
+    $("aDone").textContent = n; $("aBar").style.width = (n / 60 * 100) + "%";
+    $("aPage").textContent = "第 " + (page + 1) + " / " + PAGES + " 頁";
+    Array.prototype.forEach.call($("pageDots").children, function (b, i) { b.classList.toggle("full", pageFull(i)); });
+    var last = page === PAGES - 1;
+    $("nextPage").textContent = last ? "完成並看結果" : "下一頁";
+    renderSummary();
+  }
+  function goPage(p) { state.draft.page = p; save(); renderAssess(); $("v-assess").scrollIntoView({ block: "start", behavior: "smooth" }); }
+  function submitAttempt() {
+    var missing = ITEMS.filter(function (it) { return !state.draft.answers[it.id]; });
+    if (missing.length) {
+      var firstIdx = ITEMS.indexOf(missing[0]), p = Math.floor(firstIdx / PER_PAGE);
+      if (p !== state.draft.page) { state.draft.page = p; renderAssess(); }
+      ITEMS.slice(p * PER_PAGE, p * PER_PAGE + PER_PAGE).forEach(function (it) { if (!state.draft.answers[it.id]) { var q = $("q-" + it.id); if (q) q.classList.add("missing"); } });
+      var msg = $("aMsg"); msg.hidden = false; msg.textContent = "還有 " + missing.length + " 題未作答，已帶你到第 " + (p + 1) + " 頁，未答的題號以橘色標示。";
+      var q0 = $("q-" + missing[0].id); if (q0) q0.scrollIntoView({ block: "center", behavior: "smooth" });
+      return;
+    }
+    state.attempts.push({ date: new Date().toISOString(), answers: JSON.parse(JSON.stringify(state.draft.answers)) });
+    state.draft = { answers: {}, page: 0 };
+    state.practice.pair = recommend(latestScores());
+    save(); renderSummary();
+    location.hash = "#profile";
+  }
+
+  /* ---------- tooltip ---------- */
+  var tip = $("tip");
+  function showTip(e, html) {
+    tip.innerHTML = html; tip.classList.add("on");
+    var x = e.clientX + 14, y = e.clientY + 14, r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - 14;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - 14;
+    tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() { tip.classList.remove("on"); }
+
+  /* ---------- 3 profile chart ---------- */
+  function drawProfile(box, keys, comp, s, side) {
+    box.innerHTML = "";
+    var W = Math.max(box.clientWidth || 480, 280), labelW = W < 380 ? 96 : 118, valW = 40;
+    var x0 = labelW + 6, x1 = W - valW, rowH = 38, top = 6, rows = [comp].concat(keys), H = top + rows.length * rowH + 30;
+    function X(v) { return x0 + (v - 1) / 5 * (x1 - x0); }
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": (side === "f" ? "靈活性" : "僵化性") + "分量表分數" });
+    for (var t = 1; t <= 6; t++) {
+      svg.appendChild(sv("line", { x1: X(t), x2: X(t), y1: top, y2: top + rows.length * rowH, "class": "grid" }));
+      svg.appendChild(sv("text", { x: X(t), y: top + rows.length * rowH + 18, "text-anchor": "middle" }, String(t)));
+    }
+    var col = side === "f" ? "var(--flex)" : "var(--rigid)";
+    rows.forEach(function (k, i) {
+      var cy = top + i * rowH + rowH / 2, r = ref(k), d = SUB[k] || COMP[k];
+      if (i === 1) svg.appendChild(sv("line", { x1: 0, x2: W, y1: top + rowH, y2: top + rowH, "class": "grid" }));
+      svg.appendChild(sv("rect", { x: X(Math.max(1, r.mean - r.sd)), y: cy - 9, width: X(Math.min(6, r.mean + r.sd)) - X(Math.max(1, r.mean - r.sd)), height: 18, rx: 3, "class": "band" }));
+      svg.appendChild(sv("line", { x1: X(r.mean), x2: X(r.mean), y1: cy - 11, y2: cy + 11, "class": "mean" }));
+      svg.appendChild(sv("text", { x: 0, y: cy + 5, "class": "lbl" + (i === 0 ? " comp" : "") }, d.zh));
+      var v = s[k];
+      svg.appendChild(sv("line", { x1: X(r.mean), x2: X(v), y1: cy, y2: cy, stroke: col, "stroke-width": 2, "stroke-opacity": .45 }));
+      svg.appendChild(sv("circle", { cx: X(v), cy: cy, r: i === 0 ? 8 : 6.5, fill: col, stroke: "var(--panel)", "stroke-width": 2 }));
+      svg.appendChild(sv("text", { x: W - 2, y: cy + 5, "text-anchor": "end", "class": "val" }, f1(v)));
+      var hit = sv("rect", { x: 0, y: cy - rowH / 2, width: W, height: rowH, "class": "hit" });
+      hit.addEventListener("mousemove", function (e) {
+        showTip(e, "<b>" + d.zh + "</b>（" + d.en + "）<br>分數 " + f1(v) + "<br>原研究樣本：男 " + d.n.m[0].toFixed(1) + "（SD " + d.n.m[1].toFixed(1) + "）、女 " + d.n.w[0].toFixed(1) + "（SD " + d.n.w[1].toFixed(1) + "）");
+      });
+      hit.addEventListener("mouseleave", hideTip);
+      svg.appendChild(hit);
+    });
+    box.appendChild(svg);
+  }
+  function profileScores() { var s = latestScores(); if (s) return { s: s, ex: false }; var e = JSON.parse(JSON.stringify(EXAMPLE)); e.FLEX = FLEXK.reduce(function (a, k) { return a + e[k]; }, 0) / 6; e.INFLEX = RIGK.reduce(function (a, k) { return a + e[k]; }, 0) / 6; return { s: e, ex: true }; }
+  function renderProfile() {
+    var ps = profileScores(), s = ps.s;
+    $("exampleBanner").hidden = !ps.ex;
+    $("profileDate").textContent = ps.ex ? "範例資料" : "作答日期：" + fmtDate(latest().date);
+    drawProfile($("chartF"), FLEXK, "FLEX", s, "f");
+    drawProfile($("chartR"), RIGK, "INFLEX", s, "r");
+    var list = $("readList"); list.innerHTML = "";
+    var rec = recommend(s);
+    PAIRS.forEach(function (p, i) {
+      var bf = band(p.f, s[p.f]), br = band(p.r, s[p.r]);
+      var pf = el("span", { cls: "pill " + (bf === "low" ? "warn" : bf === "high" ? "good" : "n"), text: nameOf(p.f) + " " + (bf === "low" ? "低於範圍" : bf === "high" ? "高於範圍" : "範圍內") });
+      var pr = el("span", { cls: "pill " + (br === "high" ? "warn" : br === "low" ? "good" : "n"), text: nameOf(p.r) + " " + (br === "high" ? "高於範圍" : br === "low" ? "低於範圍" : "範圍內") });
+      var txt;
+      if (bf === "low" && br === "high") txt = "這組是目前最明顯的卡點：靈活的一端較少出現，僵化的一端較常出現。";
+      else if (bf === "low" || br === "high") txt = "其中一端落在原研究樣本範圍之外，值得留意，可作為練習的候選。";
+      else if (bf === "high" && br !== "high") txt = "這組是你的相對強項，可以在其他歷程卡住時借力。";
+      else txt = "兩端都在原研究樣本的常見範圍內。";
+      list.appendChild(el("div", { cls: "readrow" }, [
+        el("div", {}, [el("b", { text: nameOf(p.f) + " ↔ " + nameOf(p.r) }), i === rec ? el("div", { cls: "small", style: "color:var(--flex);font-weight:700", text: "建議先練習" }) : null]),
+        el("div", { cls: "stack", style: "gap:6px" }, [el("div", { cls: "row", style: "gap:6px" }, [pf, pr]), el("p", { cls: "small", text: txt })]),
+        el("a", { cls: "btn quiet", href: "#practice", text: "練習這組" })
+      ]));
+      list.lastChild.querySelector("a").addEventListener("click", function () { state.practice.pair = i; save(); });
+    });
+  }
+
+  /* ---------- 4 practice ---------- */
+  function currentPair() {
+    var p = state.practice.pair;
+    if (p == null || p < 0 || p > 5) { var r = recommend(latestScores()); p = r >= 0 ? r : 0; }
+    return p;
+  }
+  function renderPractice() {
+    var pi = currentPair(), p = PAIRS[pi], s = latestScores(), rec = recommend(s);
+    $("recNote").textContent = s ? "已依你最近一次的分數標出建議組別，你也可以自己選。" : "完成自評後，系統會建議從哪一組開始。";
+    var pick = $("pairPick"); pick.innerHTML = "";
+    PAIRS.forEach(function (q, i) {
+      var b = el("button", { type: "button", "aria-pressed": i === pi ? "true" : "false" }, [
+        i === rec ? el("span", { cls: "rec", text: "建議" }) : null,
+        el("span", { cls: "a", text: nameOf(q.f) }), el("span", { cls: "b", text: "↔ " + nameOf(q.r) })]);
+      b.addEventListener("click", function () { state.practice.pair = i; save(); renderPractice(); });
+      pick.appendChild(b);
+    });
+    var main = $("pracMain"); main.innerHTML = "";
+    main.appendChild(el("div", { cls: "pairhead" }, [
+      el("div", { cls: "side f" }, [el("div", { cls: "k", text: "練習方向" }), el("h3", { text: nameOf(p.f) }), el("p", { cls: "small", text: p.fd })]),
+      el("div", { cls: "side r" }, [el("div", { cls: "k", text: "留意的卡點" }), el("h3", { text: nameOf(p.r) }), el("p", { cls: "small", text: p.rd })])
+    ]));
+    main.appendChild(el("div", { cls: "scene" }, [el("div", { cls: "k", text: "教學現場情境" }), el("p", { text: p.scene })]));
+    var ol = el("ol", { cls: "steps-ex" });
+    p.ex.steps.forEach(function (t) { ol.appendChild(el("li", { text: t })); });
+    main.appendChild(el("div", { cls: "stack", style: "gap:8px" }, [el("h3", { text: "核心練習：" + p.ex.name }), ol,
+      el("p", { cls: "small muted", text: "建議每天做一次，連續兩週。卡住的感覺出現時，正是練習的時機。" })]));
+
+    var acts = $("acts"); acts.innerHTML = "";
+    var key = String(pi);
+    if (!state.practice.counts[key]) state.practice.counts[key] = [];
+    p.acts.forEach(function (t, ai) {
+      var log = state.practice.counts[key][ai] || [];
+      var today = new Date().toISOString().slice(0, 10), doneToday = log.indexOf(today) >= 0;
+      var btn = el("button", { type: "button", cls: "btn " + (doneToday ? "quiet" : "ghost"), text: doneToday ? "今天已記錄" : "今天做到了" });
+      if (doneToday) btn.disabled = true;
+      btn.addEventListener("click", function () {
+        var arr = state.practice.counts[key]; while (arr.length <= ai) arr.push([]);
+        if (arr[ai].indexOf(today) < 0) arr[ai].push(today);
+        save(); renderPractice(); renderSummary();
+      });
+      acts.appendChild(el("div", { cls: "act" }, [el("span", { text: t }), el("span", { cls: "cnt", html: "<b>" + log.length + "</b> 天" }), btn]));
+    });
+
+    $("reflectQ").textContent = p.q;
+    var ta = $("reflect"); ta.value = state.practice.notes[key] || ""; $("reflectSaved").textContent = "";
+    ta.oninput = function () { state.practice.notes[key] = ta.value; save(); $("reflectSaved").textContent = "已自動保存"; };
+
+    var pa = $("pairAnswers"); pa.innerHTML = "";
+    var a = latest();
+    if (!a) { pa.appendChild(el("p", { cls: "small muted", text: "完成自評後，這裡會列出這兩個分量表共 10 題的作答，幫助你看見具體在哪些情境卡住。" })); return; }
+    [p.f, p.r].forEach(function (k) {
+      pa.appendChild(el("p", { cls: "small", style: "margin:10px 0 2px;font-weight:700;color:" + (SUB[k].side === "f" ? "var(--flex)" : "var(--rigid)"), text: nameOf(k) + "（平均 " + f1(scoreOf(a.answers)[k]) + "）" }));
+      var wrap = el("div");
+      SUB[k].items.forEach(function (it, i) {
+        var v = a.answers[k + (i + 1)] || 0;
+        var bar = el("div", { cls: "bar" }, [el("i", { style: "width:" + (v / 6 * 100) + "%;background:" + (SUB[k].side === "f" ? "var(--flex)" : "var(--rigid)") })]);
+        wrap.appendChild(el("div", { cls: "ans" }, [el("span", { text: it[1] }), el("div", {}, [bar, el("span", { cls: "v", text: v + " / 6" })])]));
+      });
+      pa.appendChild(wrap);
+    });
+  }
+
+  /* ---------- 5 progress ---------- */
+  function renderProgress() {
+    var box = $("trendChart"); box.innerHTML = "";
+    var series = state.attempts.map(function (a) { return { d: a.date, s: scoreOf(a.answers) }; }).filter(function (x) { return x.s; });
+    $("trendNote").textContent = series.length ? "共 " + series.length + " 次作答" : "";
+    if (!series.length) {
+      box.appendChild(el("p", { cls: "muted", text: "完成第一次自評後，這裡會畫出分數隨時間的變化。建議每兩週作答一次，對應量表的回想期間。" }));
+    } else {
+      var W = Math.max(box.clientWidth || 600, 280), H = 240, l = 34, r = 56, t = 12, b = 34;
+      var n = series.length;
+      function X(i) { return n === 1 ? (l + (W - r)) / 2 : l + i / (n - 1) * (W - r - l); }
+      function Y(v) { return t + (6 - v) / 5 * (H - t - b); }
+      var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": "靈活性與僵化性平均分數的變化" });
+      for (var g = 1; g <= 6; g++) { svg.appendChild(sv("line", { x1: l, x2: W - r, y1: Y(g), y2: Y(g), "class": "grid" })); svg.appendChild(sv("text", { x: l - 8, y: Y(g) + 4, "text-anchor": "end" }, String(g))); }
+      var step = Math.ceil(n / Math.max(1, Math.floor((W - l - r) / 80)));
+      series.forEach(function (p, i) { if (i % step === 0 || i === n - 1) svg.appendChild(sv("text", { x: X(i), y: H - 10, "text-anchor": "middle" }, fmtDate(p.d))); });
+      [["FLEX", "var(--flex)"], ["INFLEX", "var(--rigid)"]].forEach(function (c) {
+        if (n > 1) svg.appendChild(sv("polyline", { points: series.map(function (p, i) { return X(i) + "," + Y(p.s[c[0]]); }).join(" "), fill: "none", stroke: c[1], "stroke-width": 2.5, "stroke-linejoin": "round" }));
+        series.forEach(function (p, i) {
+          var last = i === n - 1;
+          var dot = sv("circle", { cx: X(i), cy: Y(p.s[c[0]]), r: last ? 6.5 : 4, fill: c[1], stroke: "var(--panel)", "stroke-width": 2 });
+          dot.addEventListener("mousemove", function (e) { showTip(e, fmtDate(p.d) + "<br>" + nameOf(c[0]) + " " + f1(p.s[c[0]])); });
+          dot.addEventListener("mouseleave", hideTip);
+          svg.appendChild(dot);
+        });
+        var lp = series[n - 1];
+        svg.appendChild(sv("text", { x: X(n - 1) + 10, y: Y(lp.s[c[0]]) + 4, "class": "val" }, f1(lp.s[c[0]])));
+      });
+      box.appendChild(svg);
+      if (n === 1) box.appendChild(el("p", { cls: "small muted", style: "margin-top:6px", text: "目前只有一次紀錄。兩週後再作答一次，就能看到變化。" }));
+    }
+
+    var ct = $("changeTable"); ct.innerHTML = "";
+    if (series.length < 2) {
+      ct.appendChild(el("p", { cls: "small muted", text: "至少需要兩次作答才能比較。" }));
+    } else {
+      var a0 = series[0].s, a1 = series[series.length - 1].s;
+      var tb = el("table", { cls: "t" });
+      tb.appendChild(el("thead", {}, [el("tr", {}, [el("th", { text: "分量表" }), el("th", { cls: "r", text: "第一次 " + fmtDate(series[0].d) }), el("th", { cls: "r", text: "最近 " + fmtDate(series[series.length - 1].d) }), el("th", { cls: "r", text: "變化" }), el("th", { cls: "r", text: "MDC95" }), el("th", { text: "判讀" })])]));
+      var body = el("tbody");
+      ["FLEX"].concat(FLEXK, ["INFLEX"], RIGK).forEach(function (k) {
+        var d = SUB[k] || COMP[k], dv = a1[k] - a0[k], big = Math.abs(dv) >= d.mdc - 1e-9;
+        var better = d.side === "f" ? dv > 0 : dv < 0;
+        var pill = big ? el("span", { cls: "pill " + (better ? "good" : "warn"), text: better ? "明顯改善" : "明顯變差" }) : el("span", { cls: "pill n", text: "在測量誤差內" });
+        body.appendChild(el("tr", {}, [el("td", { html: (k === "FLEX" || k === "INFLEX") ? "<b>" + d.zh + "</b>" : d.zh }), el("td", { cls: "r", text: f1(a0[k]) }), el("td", { cls: "r", text: f1(a1[k]) }), el("td", { cls: "r", text: (dv > 0 ? "+" : "") + f1(dv) }), el("td", { cls: "r", text: d.mdc.toFixed(2) }), el("td", {}, [pill])]));
+      });
+      tb.appendChild(body); ct.appendChild(tb);
+    }
+
+    var at = $("attemptTable"); at.innerHTML = "";
+    if (!series.length) { at.appendChild(el("p", { cls: "small muted", text: "還沒有作答紀錄。" })); }
+    else {
+      var t2 = el("table", { cls: "t" });
+      t2.appendChild(el("thead", {}, [el("tr", {}, [el("th", { text: "#" }), el("th", { text: "日期" }), el("th", { cls: "r", text: "靈活性" }), el("th", { cls: "r", text: "僵化性" })])]));
+      var b2 = el("tbody");
+      series.slice().reverse().forEach(function (p, i) { b2.appendChild(el("tr", {}, [el("td", { cls: "num", text: String(series.length - i) }), el("td", { text: fmtDate(p.d) }), el("td", { cls: "r", text: f1(p.s.FLEX) }), el("td", { cls: "r", text: f1(p.s.INFLEX) })])); });
+      t2.appendChild(b2); at.appendChild(t2);
+    }
+    $("copyCsv").disabled = !series.length;
+  }
+  function csv() {
+    var keys = ["FLEX", "INFLEX"].concat(FLEXK, RIGK);
+    var lines = ["date," + keys.join(",")];
+    state.attempts.forEach(function (a) { var s = scoreOf(a.answers); if (s) lines.push(a.date.slice(0, 10) + "," + keys.map(function (k) { return f1(s[k]); }).join(",")); });
+    return lines.join("\n");
+  }
+
+  /* ---------- wiring ---------- */
+  function renderView() {
+    hideTip();
+    if (current === "learn") { renderHex(); renderPairDetail(); }
+    else if (current === "assess") renderAssess();
+    else if (current === "profile") renderProfile();
+    else if (current === "practice") renderPractice();
+    else if (current === "progress") renderProgress();
+  }
+  function renderAll() { renderSummary(); renderView(); }
+
+  $("hexF").addEventListener("click", function () { hexSide = "f"; renderHex(); });
+  $("hexR").addEventListener("click", function () { hexSide = "r"; renderHex(); });
+  $("showEn").addEventListener("change", function () { state.showEn = this.checked; save(); renderAssess(); });
+  $("prevPage").addEventListener("click", function () { if (state.draft.page > 0) goPage(state.draft.page - 1); });
+  $("nextPage").addEventListener("click", function () { if (state.draft.page < PAGES - 1) goPage(state.draft.page + 1); else submitAttempt(); });
+  $("copyCsv").addEventListener("click", function () {
+    var text = csv(), box = $("csvBox");
+    function fallback() { box.hidden = false; box.value = text; box.focus(); box.select(); $("copyMsg").textContent = "無法自動複製，請在上方框內全選後複製。"; }
+    try {
+      navigator.clipboard.writeText(text).then(function () { box.hidden = true; $("copyMsg").textContent = "已複製 " + (text.split("\n").length - 1) + " 次作答的分數，可貼到 Excel 或試算表。"; }, fallback);
+    } catch (e) { fallback(); }
+  });
+  $("retake").addEventListener("click", function () { state.draft.page = 0; save(); location.hash = "#assess"; });
+  $("wipe").addEventListener("click", function () { $("wipeConfirm").classList.add("on"); });
+  $("wipeNo").addEventListener("click", function () { $("wipeConfirm").classList.remove("on"); });
+  $("wipeYes").addEventListener("click", function () {
+    var keepEn = state.showEn;
+    state = normalize(null); state.showEn = keepEn;
+    $("wipeConfirm").classList.remove("on"); $("copyMsg").textContent = "已刪除所有紀錄。";
+    save(); renderAll();
+  });
+  window.addEventListener("hashchange", route);
+  var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(function () { if (current === "profile" || current === "progress") renderView(); }, 150); });
+
+  route();
+  initStorage();
+})();
+</script>
+</body>
+</html>
