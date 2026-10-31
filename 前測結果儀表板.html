@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>前測結果儀表板：慈悲、正念與教師心理健康</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --accent-soft: rgba(42,120,214,0.14); --dot: #9d9b94; --band: rgba(42,120,214,0.10);
+  --r1: #86b6ef; --r2: #5598e7; --r3: #2a78d6; --r4: #1c5cab; --r5: #104281;
+  --sel: rgba(42,120,214,0.08); --chip-on: #0b0b0b; --chip-on-ink: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-soft: rgba(57,135,229,0.22); --dot: #6f6d67; --band: rgba(57,135,229,0.16);
+    --r1: #b7d3f6; --r2: #6da7ec; --r3: #3987e5; --r4: #256abf; --r5: #184f95;
+    --sel: rgba(57,135,229,0.14); --chip-on: #f0efec; --chip-on-ink: #0b0b0b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --accent-soft: rgba(57,135,229,0.22); --dot: #6f6d67; --band: rgba(57,135,229,0.16);
+  --r1: #b7d3f6; --r2: #6da7ec; --r3: #3987e5; --r4: #256abf; --r5: #184f95;
+  --sel: rgba(57,135,229,0.14); --chip-on: #f0efec; --chip-on-ink: #0b0b0b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  font-size: 14px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
+h1 { font-size: 24px; margin: 0 0 6px; font-weight: 650; letter-spacing: 0.01em; }
+.sub { color: var(--ink2); margin: 0 0 24px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+.kpi .lab { color: var(--ink2); font-size: 13px; }
+.kpi .val { font-size: 30px; font-weight: 650; margin: 2px 0 0; }
+.kpi .val small { font-size: 15px; font-weight: 500; color: var(--ink2); margin-left: 4px; }
+.kpi .note { color: var(--muted); font-size: 12px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 16px; }
+.chip { border: 1px solid var(--border); background: var(--surface); color: var(--ink); border-radius: 999px;
+  padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+.chip:hover { background: var(--sel); }
+.chip[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); border-color: var(--chip-on); }
+.chip:focus-visible, select:focus-visible, .hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); color: var(--ink2); font: inherit; font-size: 13px; padding: 6px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.grid2 { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; align-items: start; }
+.grid2b { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 16px; margin-top: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px 16px; }
+.card h2 { font-size: 16px; margin: 0 0 2px; font-weight: 650; }
+.card .hint { color: var(--ink2); font-size: 13px; margin: 0 0 12px; }
+.sticky { position: sticky; top: 16px; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: inherit; }
+.row-hit { cursor: pointer; }
+.row-hit:hover .row-bg { fill: var(--sel); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--ink2); font-size: 12px; margin-top: 8px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
+.legend .ln { width: 14px; height: 2px; border-radius: 1px; vertical-align: 3px; }
+select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; width: 100%; margin-bottom: 10px; }
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0 8px; }
+.stats div { background: var(--page); border-radius: 8px; padding: 8px 6px; text-align: center; }
+.stats b { display: block; font-size: 17px; font-weight: 650; }
+.stats span { color: var(--ink2); font-size: 12px; }
+.desc { color: var(--ink2); font-size: 13px; margin: 6px 0 0; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--page); color: var(--ink2); margin-left: 6px; }
+.tag.flag { background: var(--accent-soft); color: var(--ink); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 7px 8px; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+th { color: var(--ink2); font-weight: 600; }
+tr.grp td { background: var(--page); font-weight: 650; text-align: left; }
+tbody tr.clickable { cursor: pointer; } tbody tr.clickable:hover td { background: var(--sel); }
+details { margin-top: 16px; }
+details summary { cursor: pointer; font-weight: 650; font-size: 15px; }
+details ol { color: var(--ink2); padding-left: 20px; margin: 10px 0 0; }
+details li { margin-bottom: 6px; }
+.tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12); border-radius: 8px; padding: 8px 10px; font-size: 12px; max-width: 260px;
+  opacity: 0; transition: opacity 0.08s; z-index: 10; }
+.tip .tv { font-size: 15px; font-weight: 650; }
+.tip .tl { color: var(--ink2); }
+.foot { color: var(--muted); font-size: 12px; margin-top: 20px; }
+.theme-btn { border: 1px solid var(--border); background: var(--surface); color: var(--ink2); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+@media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, 1fr); } .grid2, .grid2b { grid-template-columns: 1fr; } .sticky { position: static; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>前測結果儀表板：慈悲、正念與教師心理健康</h1>
+  <p class="sub">2026/9/19–10/18 填答 · N = 22（已排除 2026 年 3 月的 5 筆）· 資料已去識別，不含化名</p>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="filters" role="toolbar" aria-label="篩選量表">
+    <span id="chips" style="display:contents"></span>
+    <span class="spacer"></span>
+    <div class="seg" role="group" aria-label="檢視方式">
+      <button type="button" id="viewChart" aria-pressed="true">圖表</button>
+      <button type="button" id="viewTable" aria-pressed="false">表格</button>
+    </div>
+    <button type="button" class="theme-btn" id="themeBtn">切換深色／淺色</button>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>團體剖面：各分量表在量尺上的位置</h2>
+      <p class="hint">點＝團體平均（0%＝最低可能分，100%＝最高可能分），橫線＝±1 標準差。點選任一列，右側會顯示 22 人的分數分布。</p>
+      <div id="profileWrap"></div>
+      <div id="tableWrap" hidden></div>
+      <div class="legend" id="profLegend">
+        <span><i style="background:var(--accent);border-radius:50%"></i>值得留意的三處</span>
+        <span><i style="background:var(--dot);border-radius:50%"></i>其他分量表</span>
+      </div>
+    </section>
+    <section class="card sticky" aria-live="polite">
+      <h2>分數分布</h2>
+      <p class="hint">每個點是一位參與者（匿名）。藍色帶狀區為平均 ±1 標準差。</p>
+      <label for="metricSel" class="hint" style="display:block;margin:0 0 4px">選擇分量表</label>
+      <select id="metricSel"></select>
+      <div id="swarm"></div>
+      <div class="stats" id="stats"></div>
+      <p class="desc" id="desc"></p>
+    </section>
+  </div>
+
+  <div class="grid2b">
+    <section class="card">
+      <h2>心理健康類型：mBMI 總分 × PHQ-9</h2>
+      <p class="hint">每個點是一位參與者，重疊的點已上下微幅錯開。參考線：mBMI 總分 21、PHQ-9 10 分（10 分以下歸為低憂鬱）。</p>
+      <div id="quad"></div>
+      <p class="desc">mBMI 總分以三向度平均相加計算（3–30），為暫定算法，類型人數僅供參考。</p>
+    </section>
+    <section class="card">
+      <h2>PHQ-9 憂鬱程度分級</h2>
+      <p class="hint">依計分說明分級；顏色由淺到深代表程度由輕到重。</p>
+      <div id="phqBars"></div>
+      <h2 style="margin-top:22px">依附風格自評：與四種類型的相似程度</h2>
+      <p class="hint">每列為一種類型，色塊為選擇各名次的人數。</p>
+      <div id="rankBars"></div>
+      <div class="legend" id="rankLegend"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <details>
+      <summary>計分說明與資料處理</summary>
+      <ol>
+        <li>僅分析 2026 年 9 月之後的前測填答（22 筆），全部同意參與研究，無遺漏值。</li>
+        <li>CEAS：感知為第 1、2、4、5、6、8 題平均，行動為第 9、10、12、13 題平均（1–10 分）。</li>
+        <li>慈悲憂慮：對他人第 1–10 題、他人對己第 11–23 題、自我慈悲 15 題，皆取平均（0–4 分）。</li>
+        <li>mBMI：分量表依計分表題號區間取平均；三大向度為所含題項平均。總分為三向度平均相加（暫定）。</li>
+        <li>PHQ-9：9 題加總（0–27）；0–4 很少、5–9 輕度、10–14 中度、15–19 中重度、20–27 重度。</li>
+        <li>正念憂拒：Fears 與 Resistances 為指定題項加總；其餘題目不計分。</li>
+        <li>情緒型態：採英文原版計分鍵（反向題＝8－原始分），與題意一致；計分表中文公式欄的版本另見 Excel 對照表。</li>
+        <li>人際依附：依計分表公式計算四個量尺（6–36）。自評排序有 3 人重複使用同一名次，依原始填答計入。</li>
+      </ol>
+    </details>
+  </section>
+  <p class="foot">資料來源：前測問卷（Google 表單匯出），計分依研究團隊「重要問卷計分」說明。本頁僅呈現去識別資料，個人分數順序已打亂。</p>
+</div>
+<div class="tip" id="tip" role="status"></div>
+
+<script>
+const DATA = [{"SC_E":7.6667,"SC_A":6.25,"CO_E":7.1667,"CO_A":8.0,"CF_E":6.5,"CF_A":7.25,"F_O":2.1,"F_F":0.4615,"F_S":1.4,"mb1":8.6,"mb2":9.5556,"mb3":8.8333,"mb4":6.5714,"mb5":6.3077,"mb6":8.2,"mb7":7.2,"mb8":6.7778,"mb9":9.0,"mbB":9.1,"mbM":6.76,"mbI":7.4737,"mbT":23.3337,"phq":1.0,"frmF":20.0,"frmR":21.0,"e1":13.0,"e2":12.0,"e3":25.0,"e4":19.0,"e5":25.0,"e6":18.0,"aA":22.0,"aB":27.0,"aC":25.0,"aD":23.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"很少憂鬱(0-4)","type":"心盛型","age":52},{"SC_E":6.6667,"SC_A":5.0,"CO_E":5.0,"CO_A":6.25,"CF_E":5.8333,"CF_A":7.25,"F_O":3.2,"F_F":0.6923,"F_S":0.2,"mb1":5.6,"mb2":5.8889,"mb3":6.0,"mb4":7.7143,"mb5":5.6923,"mb6":6.6,"mb7":6.4,"mb8":7.0,"mb9":7.6,"mbB":5.85,"mbM":6.44,"mbI":7.0,"mbT":19.29,"phq":3.0,"frmF":17.0,"frmR":12.0,"e1":19.0,"e2":11.0,"e3":24.0,"e4":25.0,"e5":26.0,"e6":20.0,"aA":23.0,"aB":25.0,"aC":21.0,"aD":25.0,"rA":2.0,"rB":4.0,"rC":3.0,"rD":1.0,"phqCat":"很少憂鬱(0-4)","type":"冷靜型","age":33},{"SC_E":6.3333,"SC_A":6.25,"CO_E":7.1667,"CO_A":7.0,"CF_E":4.5,"CF_A":5.0,"F_O":2.7,"F_F":1.4615,"F_S":1.6,"mb1":9.0,"mb2":8.5556,"mb3":5.0,"mb4":7.4286,"mb5":5.1538,"mb6":6.8,"mb7":6.0,"mb8":6.2222,"mb9":5.0,"mbB":7.6,"mbM":6.12,"mbI":5.8421,"mbT":19.5621,"phq":10.0,"frmF":20.0,"frmR":19.0,"e1":16.0,"e2":7.0,"e3":27.0,"e4":24.0,"e5":16.0,"e6":17.0,"aA":27.0,"aB":32.0,"aC":24.0,"aD":32.0,"rA":4.0,"rB":1.0,"rC":2.0,"rD":3.0,"phqCat":"中度憂鬱(10-14)","type":"冷靜型","age":30},{"SC_E":7.1667,"SC_A":7.5,"CO_E":8.0,"CO_A":8.25,"CF_E":7.0,"CF_A":7.25,"F_O":2.9,"F_F":1.4615,"F_S":1.2,"mb1":8.2,"mb2":7.5556,"mb3":7.5,"mb4":7.8571,"mb5":7.4615,"mb6":7.8,"mb7":8.0,"mb8":7.6667,"mb9":8.0,"mbB":7.7,"mbM":7.64,"mbI":7.8421,"mbT":23.1821,"phq":6.0,"frmF":23.0,"frmR":26.0,"e1":22.0,"e2":22.0,"e3":23.0,"e4":22.0,"e5":23.0,"e6":16.0,"aA":26.0,"aB":17.0,"aC":15.0,"aD":22.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":42},{"SC_E":7.5,"SC_A":10.0,"CO_E":6.8333,"CO_A":9.0,"CF_E":5.3333,"CF_A":9.0,"F_O":3.7,"F_F":2.1538,"F_S":0.2667,"mb1":8.0,"mb2":9.3333,"mb3":4.0,"mb4":9.0,"mb5":9.3077,"mb6":9.8,"mb7":10.0,"mb8":9.4444,"mb9":10.0,"mbB":7.4,"mbM":9.32,"mbI":9.7368,"mbT":26.4568,"phq":3.0,"frmF":20.0,"frmR":16.0,"e1":23.0,"e2":20.0,"e3":21.0,"e4":27.0,"e5":18.0,"e6":24.0,"aA":32.0,"aB":28.0,"aC":17.0,"aD":31.0,"rA":1.0,"rB":4.0,"rC":4.0,"rD":2.0,"phqCat":"很少憂鬱(0-4)","type":"心盛型","age":58},{"SC_E":7.0,"SC_A":8.25,"CO_E":7.3333,"CO_A":6.75,"CF_E":6.5,"CF_A":8.5,"F_O":2.6,"F_F":1.1538,"F_S":0.5333,"mb1":6.8,"mb2":8.3333,"mb3":7.1667,"mb4":8.8571,"mb5":8.8462,"mb6":9.2,"mb7":9.4,"mb8":9.3333,"mb9":9.8,"mbB":7.6,"mbM":8.92,"mbI":9.4737,"mbT":25.9937,"phq":7.0,"frmF":14.0,"frmR":20.0,"e1":25.0,"e2":16.0,"e3":23.0,"e4":26.0,"e5":27.0,"e6":18.0,"aA":29.0,"aB":21.0,"aC":24.0,"aD":34.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":46},{"SC_E":5.0,"SC_A":5.0,"CO_E":5.0,"CO_A":5.0,"CF_E":5.0,"CF_A":5.0,"F_O":1.9,"F_F":1.6154,"F_S":2.3333,"mb1":7.4,"mb2":7.3333,"mb3":7.6667,"mb4":7.0,"mb5":6.9231,"mb6":8.2,"mb7":8.4,"mb8":7.5556,"mb9":6.8,"mbB":7.45,"mbM":7.2,"mbI":7.5789,"mbT":22.2289,"phq":15.0,"frmF":38.0,"frmR":34.0,"e1":17.0,"e2":17.0,"e3":19.0,"e4":12.0,"e5":12.0,"e6":17.0,"aA":23.0,"aB":23.0,"aC":27.0,"aD":24.0,"rA":2.0,"rB":3.0,"rC":2.0,"rD":2.0,"phqCat":"中重度憂鬱(15-19)","type":"奮戰型","age":26},{"SC_E":8.3333,"SC_A":8.25,"CO_E":5.1667,"CO_A":6.0,"CF_E":7.1667,"CF_A":8.25,"F_O":3.0,"F_F":0.8462,"F_S":1.1333,"mb1":7.0,"mb2":8.2222,"mb3":7.0,"mb4":8.4286,"mb5":7.0769,"mb6":7.2,"mb7":7.6,"mb8":7.5556,"mb9":7.8,"mbB":7.55,"mbM":7.48,"mbI":7.6316,"mbT":22.6616,"phq":6.0,"frmF":23.0,"frmR":20.0,"e1":22.0,"e2":16.0,"e3":20.0,"e4":22.0,"e5":27.0,"e6":17.0,"aA":27.0,"aB":18.0,"aC":11.0,"aD":22.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":48},{"SC_E":9.0,"SC_A":9.25,"CO_E":6.6667,"CO_A":6.5,"CF_E":7.5,"CF_A":7.75,"F_O":2.4,"F_F":0.0769,"F_S":0.3333,"mb1":9.0,"mb2":9.7778,"mb3":9.5,"mb4":9.7143,"mb5":9.8462,"mb6":9.6,"mb7":9.8,"mb8":9.5556,"mb9":9.8,"mbB":9.5,"mbM":9.76,"mbI":9.6842,"mbT":28.9442,"phq":1.0,"frmF":17.0,"frmR":18.0,"e1":25.0,"e2":21.0,"e3":15.0,"e4":23.0,"e5":24.0,"e6":21.0,"aA":32.0,"aB":15.0,"aC":9.0,"aD":27.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"很少憂鬱(0-4)","type":"心盛型","age":29},{"SC_E":8.5,"SC_A":8.25,"CO_E":8.3333,"CO_A":9.5,"CF_E":2.8333,"CF_A":2.5,"F_O":3.4,"F_F":1.3077,"F_S":1.0667,"mb1":9.2,"mb2":6.4444,"mb3":6.8333,"mb4":8.4286,"mb5":7.8462,"mb6":7.4,"mb7":10.0,"mb8":9.0,"mb9":8.6,"mbB":7.25,"mbM":7.92,"mbI":9.1579,"mbT":24.3279,"phq":6.0,"frmF":14.0,"frmR":13.0,"e1":25.0,"e2":14.0,"e3":27.0,"e4":27.0,"e5":27.0,"e6":15.0,"aA":28.0,"aB":22.0,"aC":18.0,"aD":31.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":39},{"SC_E":6.6667,"SC_A":7.5,"CO_E":6.3333,"CO_A":7.25,"CF_E":6.5,"CF_A":7.0,"F_O":2.4,"F_F":1.0,"F_S":0.5333,"mb1":7.4,"mb2":7.8889,"mb3":6.6667,"mb4":8.0,"mb5":7.7692,"mb6":8.0,"mb7":6.8,"mb8":7.8889,"mb9":8.0,"mbB":7.4,"mbM":7.88,"mbI":7.6316,"mbT":22.9116,"phq":6.0,"frmF":30.0,"frmR":28.0,"e1":17.0,"e2":16.0,"e3":16.0,"e4":16.0,"e5":16.0,"e6":16.0,"aA":23.0,"aB":21.0,"aC":19.0,"aD":21.0,"rA":1.0,"rB":4.0,"rC":3.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":31},{"SC_E":7.1667,"SC_A":7.75,"CO_E":5.6667,"CO_A":7.25,"CF_E":6.0,"CF_A":7.5,"F_O":2.0,"F_F":0.4615,"F_S":0.0,"mb1":6.6,"mb2":7.0,"mb3":6.3333,"mb4":5.4286,"mb5":6.6923,"mb6":8.2,"mb7":8.0,"mb8":7.7778,"mb9":8.0,"mbB":6.7,"mbM":6.64,"mbI":7.8947,"mbT":21.2347,"phq":5.0,"frmF":16.0,"frmR":11.0,"e1":21.0,"e2":23.0,"e3":17.0,"e4":17.0,"e5":22.0,"e6":15.0,"aA":25.0,"aB":17.0,"aC":12.0,"aD":25.0,"rA":2.0,"rB":4.0,"rC":3.0,"rD":1.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":47},{"SC_E":7.3333,"SC_A":6.5,"CO_E":8.1667,"CO_A":7.0,"CF_E":7.8333,"CF_A":6.75,"F_O":1.6,"F_F":2.5385,"F_S":1.0667,"mb1":8.6,"mb2":8.3333,"mb3":9.1667,"mb4":8.2857,"mb5":8.1538,"mb6":9.4,"mb7":7.4,"mb8":7.2222,"mb9":5.8,"mbB":8.65,"mbM":8.44,"mbI":6.8947,"mbT":23.9847,"phq":6.0,"frmF":21.0,"frmR":24.0,"e1":23.0,"e2":17.0,"e3":28.0,"e4":25.0,"e5":25.0,"e6":22.0,"aA":24.0,"aB":26.0,"aC":25.0,"aD":26.0,"rA":2.0,"rB":3.0,"rC":4.0,"rD":1.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":50},{"SC_E":8.1667,"SC_A":8.0,"CO_E":7.3333,"CO_A":7.25,"CF_E":8.3333,"CF_A":9.25,"F_O":2.1,"F_F":0.4615,"F_S":0.6,"mb1":8.6,"mb2":8.2222,"mb3":7.3333,"mb4":7.5714,"mb5":7.3077,"mb6":8.0,"mb7":7.8,"mb8":7.5556,"mb9":7.8,"mbB":8.05,"mbM":7.52,"mbI":7.6842,"mbT":23.2542,"phq":6.0,"frmF":12.0,"frmR":15.0,"e1":22.0,"e2":22.0,"e3":20.0,"e4":24.0,"e5":25.0,"e6":15.0,"aA":26.0,"aB":17.0,"aC":7.0,"aD":15.0,"rA":1.0,"rB":4.0,"rC":3.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":37},{"SC_E":7.8333,"SC_A":8.75,"CO_E":7.3333,"CO_A":8.25,"CF_E":5.6667,"CF_A":6.75,"F_O":2.4,"F_F":1.8462,"F_S":1.7333,"mb1":7.8,"mb2":6.7778,"mb3":8.1667,"mb4":8.4286,"mb5":8.3077,"mb6":7.6,"mb7":6.4,"mb8":7.7778,"mb9":7.4,"mbB":7.45,"mbM":8.2,"mbI":7.3158,"mbT":22.9658,"phq":4.0,"frmF":18.0,"frmR":17.0,"e1":22.0,"e2":17.0,"e3":25.0,"e4":27.0,"e5":24.0,"e6":25.0,"aA":17.0,"aB":24.0,"aC":21.0,"aD":21.0,"rA":1.0,"rB":4.0,"rC":2.0,"rD":3.0,"phqCat":"很少憂鬱(0-4)","type":"心盛型","age":51},{"SC_E":8.6667,"SC_A":9.25,"CO_E":6.6667,"CO_A":7.25,"CF_E":5.1667,"CF_A":7.0,"F_O":2.1,"F_F":1.1538,"F_S":0.4667,"mb1":8.2,"mb2":7.7778,"mb3":7.5,"mb4":7.7143,"mb5":7.6923,"mb6":8.0,"mb7":8.6,"mb8":8.1111,"mb9":8.6,"mbB":7.8,"mbM":7.76,"mbI":8.3684,"mbT":23.9284,"phq":3.0,"frmF":16.0,"frmR":17.0,"e1":25.0,"e2":20.0,"e3":21.0,"e4":23.0,"e5":23.0,"e6":21.0,"aA":27.0,"aB":19.0,"aC":14.0,"aD":20.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"很少憂鬱(0-4)","type":"心盛型","age":38},{"SC_E":6.6667,"SC_A":7.75,"CO_E":8.5,"CO_A":8.5,"CF_E":5.0,"CF_A":6.0,"F_O":1.3,"F_F":1.0,"F_S":0.5333,"mb1":7.6,"mb2":8.2222,"mb3":8.0,"mb4":7.1429,"mb5":7.9231,"mb6":7.4,"mb7":8.4,"mb8":7.5556,"mb9":8.6,"mbB":8.0,"mbM":7.6,"mbI":8.0526,"mbT":23.6526,"phq":6.0,"frmF":25.0,"frmR":20.0,"e1":23.0,"e2":20.0,"e3":20.0,"e4":19.0,"e5":24.0,"e6":22.0,"aA":28.0,"aB":21.0,"aC":15.0,"aD":14.0,"rA":2.0,"rB":1.0,"rC":4.0,"rD":3.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":32},{"SC_E":6.0,"SC_A":7.0,"CO_E":7.1667,"CO_A":7.0,"CF_E":6.6667,"CF_A":7.25,"F_O":3.0,"F_F":1.8462,"F_S":1.0667,"mb1":6.8,"mb2":7.1111,"mb3":6.6667,"mb4":6.8571,"mb5":6.6923,"mb6":7.0,"mb7":6.8,"mb8":6.8889,"mb9":6.8,"mbB":6.9,"mbM":6.8,"mbI":6.8421,"mbT":20.5421,"phq":9.0,"frmF":28.0,"frmR":19.0,"e1":17.0,"e2":13.0,"e3":20.0,"e4":21.0,"e5":23.0,"e6":14.0,"aA":25.0,"aB":20.0,"aC":15.0,"aD":21.0,"rA":1.0,"rB":3.0,"rC":4.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"冷靜型","age":25},{"SC_E":5.8333,"SC_A":4.75,"CO_E":6.1667,"CO_A":5.5,"CF_E":6.1667,"CF_A":6.0,"F_O":1.6,"F_F":0.3846,"F_S":0.9333,"mb1":6.8,"mb2":6.5556,"mb3":4.8333,"mb4":6.7143,"mb5":3.2308,"mb6":3.6,"mb7":4.0,"mb8":2.7778,"mb9":1.2,"mbB":6.1,"mbM":4.28,"mbI":2.6842,"mbT":13.0642,"phq":21.0,"frmF":36.0,"frmR":21.0,"e1":12.0,"e2":8.0,"e3":17.0,"e4":13.0,"e5":24.0,"e6":10.0,"aA":11.0,"aB":13.0,"aC":9.0,"aD":10.0,"rA":1.0,"rB":2.0,"rC":3.0,"rD":4.0,"phqCat":"重度憂鬱(20-27)","type":"渾沌型","age":40},{"SC_E":8.0,"SC_A":7.0,"CO_E":6.8333,"CO_A":6.5,"CF_E":2.6667,"CF_A":5.5,"F_O":3.2,"F_F":1.1538,"F_S":0.8667,"mb1":5.0,"mb2":6.2222,"mb3":7.5,"mb4":9.0,"mb5":5.6154,"mb6":6.6,"mb7":3.2,"mb8":3.8889,"mb9":1.6,"mbB":6.3,"mbM":6.76,"mbI":3.1053,"mbT":16.1653,"phq":15.0,"frmF":24.0,"frmR":15.0,"e1":16.0,"e2":12.0,"e3":24.0,"e4":19.0,"e5":21.0,"e6":16.0,"aA":18.0,"aB":19.0,"aC":24.0,"aD":32.0,"rA":3.0,"rB":4.0,"rC":1.0,"rD":2.0,"phqCat":"中重度憂鬱(15-19)","type":"渾沌型","age":26},{"SC_E":7.6667,"SC_A":8.0,"CO_E":6.3333,"CO_A":6.5,"CF_E":5.6667,"CF_A":7.5,"F_O":3.5,"F_F":0.4615,"F_S":0.2667,"mb1":7.8,"mb2":8.6667,"mb3":8.3333,"mb4":8.2857,"mb5":6.0769,"mb6":8.2,"mb7":7.6,"mb8":8.0,"mb9":8.0,"mbB":8.35,"mbM":7.12,"mbI":7.8947,"mbT":23.3647,"phq":2.0,"frmF":14.0,"frmR":25.0,"e1":19.0,"e2":15.0,"e3":17.0,"e4":24.0,"e5":28.0,"e6":19.0,"aA":21.0,"aB":24.0,"aC":15.0,"aD":22.0,"rA":2.0,"rB":4.0,"rC":3.0,"rD":1.0,"phqCat":"很少憂鬱(0-4)","type":"心盛型","age":25},{"SC_E":9.6667,"SC_A":8.5,"CO_E":7.5,"CO_A":8.0,"CF_E":8.6667,"CF_A":8.0,"F_O":4.0,"F_F":2.0,"F_S":1.4667,"mb1":9.8,"mb2":9.8889,"mb3":9.3333,"mb4":8.4286,"mb5":9.5385,"mb6":9.0,"mb7":9.2,"mb8":8.5556,"mb9":9.6,"mbB":9.7,"mbM":9.12,"mbI":9.0,"mbT":27.82,"phq":8.0,"frmF":22.0,"frmR":25.0,"e1":18.0,"e2":16.0,"e3":17.0,"e4":19.0,"e5":22.0,"e6":16.0,"aA":25.0,"aB":22.0,"aC":27.0,"aD":32.0,"rA":1.0,"rB":1.0,"rC":4.0,"rD":2.0,"phqCat":"輕度憂鬱(5-9)","type":"心盛型","age":32}];
+
+const GROUPS = [
+  { id: 'ceas', name: '慈悲感知與行動', dir: 'up' },
+  { id: 'fcs', name: '慈悲憂慮', dir: 'down' },
+  { id: 'mbmi', name: '心理健康 mBMI', dir: 'up' },
+  { id: 'phq', name: '憂鬱 PHQ-9', dir: 'down' },
+  { id: 'frm', name: '正念憂拒', dir: 'down' },
+  { id: 'esq', name: '情緒型態 ESQ', dir: 'style' },
+  { id: 'att', name: '人際依附', dir: 'style' }
+];
+const DIRTXT = { up: '越高越好', down: '越低越好', style: '描述風格' };
+const M = [
+  ['SC_E','自我慈悲感知','ceas',1,10,0,'面對自己的苦惱時，能否察覺、容忍並理解它。'],
+  ['SC_A','自我慈悲行動','ceas',1,10,0,'能否採取行動幫助自己，給自己支持與鼓勵。'],
+  ['CO_E','對他人慈悲感知','ceas',1,10,0,'能否察覺並包容他人的苦惱。'],
+  ['CO_A','對他人慈悲行動','ceas',1,10,0,'能否採取行動幫助苦惱中的人。'],
+  ['CF_E','接受他人善意感知','ceas',1,10,1,'能否感受到身邊的人察覺、理解自己的苦惱。是慈悲量表中最低的一項：善意在身邊，但不一定收得到。'],
+  ['CF_A','接受他人善意行動','ceas',1,10,0,'能否感受到身邊的人採取行動支持自己。'],
+  ['F_O','憂慮對他人慈悲','fcs',0,4,1,'擔心慈悲待人會被佔便宜、被依賴或耗盡情感。三種憂慮中明顯最高，反映學校現場的界線需求。'],
+  ['F_F','憂慮他人對己慈悲','fcs',0,4,0,'對接受他人的善意感到不安、尷尬或懷疑。'],
+  ['F_S','憂慮自我慈悲','fcs',0,4,0,'擔心善待自己會變軟弱、標準下降。'],
+  ['mb1','關係建立','mbmi',1,10,0,'主動釋出善意、參與社群、交朋友（第 1–5 題）。'],
+  ['mb2','關係維持','mbmi',1,10,0,'支持他人、感到被支持、維持信任關係（第 6–14 題）。'],
+  ['mb3','處理衝突','mbmi',1,10,0,'聽取建議、設底線、協商與處理衝突（第 15–20 題）；九個分量表中最低。'],
+  ['mbB','▸ 人際支持親密感','mbmi',1,10,0,'Be-friends 向度：第 1–20 題平均。'],
+  ['mb4','覺察情緒','mbmi',1,10,0,'感受、辨識與表達正負向情緒（第 21–27 題）。'],
+  ['mb5','接納調適','mbmi',1,10,0,'調整想法、接納與調適情緒、感恩寬恕（第 28–40 題）。'],
+  ['mb6','專注投入','mbmi',1,10,0,'體驗專注投入並感到滿足（第 41–45 題）。'],
+  ['mbM','▸ 情緒平穩掌握感','mbmi',1,10,0,'Mindfulness 向度：第 21–45 題平均。'],
+  ['mb7','自我價值','mbmi',1,10,0,'喜歡、欣賞與肯定自己（第 46–50 題）。'],
+  ['mb8','成就','mbmi',1,10,0,'設定目標、希望感與成就感（第 51–59 題）。'],
+  ['mb9','生命意義','mbmi',1,10,0,'知道活著的意義與生活目標（第 60–64 題）；個別差異最大。'],
+  ['mbI','▸ 自我價值意義感','mbmi',1,10,0,'Identity 向度：第 46–64 題平均。'],
+  ['mbT','▸ mBMI 總分（暫定）','mbmi',3,30,0,'三向度平均相加；21 分以上歸為心盛型或奮戰型。算法暫定。'],
+  ['phq','憂鬱症狀總分','phq',0,27,0,'最近兩週憂鬱相關症狀的頻率；10 分以上為中度以上。'],
+  ['frmF','正念憂慮','frm',10,50,0,'害怕讓心靜下來，例如擔心焦慮的想法會浮現。'],
+  ['frmR','抗拒正念','frm',9,45,0,'認為讓心靜下來浪費時間、不適合自己。'],
+  ['e1','展望','esq',4,28,0,'正向情緒能否持續、對未來是否懷抱希望。'],
+  ['e2','回彈力','esq',4,28,1,'遇到挫折後恢復平靜的速度；本班約在量尺中間，是情緒型態中最低的一項。'],
+  ['e3','社會直覺','esq',4,28,0,'對他人情緒訊號的敏感度。'],
+  ['e4','自我覺識','esq',4,28,0,'對自身想法、感受與身體訊號的覺察。'],
+  ['e5','情境敏感度','esq',4,28,0,'依場合調整言行的能力。'],
+  ['e6','注意力','esq',4,28,0,'專注、不易分心的程度。'],
+  ['aA','安全依附','att',6,36,0,'對自己與他人都有正向看法，能自在親近也保有自主。'],
+  ['aB','焦慮依附','att',6,36,0,'擔心不被喜歡，很在乎別人的看法。'],
+  ['aC','逃避依附','att',6,36,0,'需要接納卻害怕親近，以保持距離避免受傷。'],
+  ['aD','排除依附','att',6,36,0,'重視獨立、偏好自在獨處，維持自我價值感。']
+].map(([key, label, group, lo, hi, flag, desc]) => ({ key, label, group, lo, hi, flag, desc }));
+const META = Object.fromEntries(M.map(m => [m.key, m]));
+const GMAP = Object.fromEntries(GROUPS.map(g => [g.id, g]));
+
+// ---------- stats ----------
+const vals = k => DATA.map(d => d[k]);
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+const sd = a => { const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1)); };
+const median = a => { const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+const STATS = Object.fromEntries(M.map(m => { const a = vals(m.key); return [m.key, { m: mean(a), sd: sd(a), mdn: median(a), min: Math.min(...a), max: Math.max(...a), n: a.length }]; }));
+const f2 = v => (Math.round(v * 100) / 100).toFixed(2);
+const fmt = v => Number.isInteger(v) ? String(v) : f2(v);
+
+// ---------- helpers ----------
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs = {}, parent, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function h(tag, attrs = {}, parent, text) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const tip = document.getElementById('tip');
+function showTip(evt, value, label, extra) {
+  tip.textContent = '';
+  h('div', { class: 'tv' }, tip, value);
+  h('div', { class: 'tl' }, tip, label);
+  if (extra) h('div', { class: 'tl' }, tip, extra);
+  let x, y;
+  if (evt.clientX !== undefined && evt.type !== 'focus') { x = evt.clientX; y = evt.clientY; }
+  else { const r = evt.target.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top; }
+  tip.style.left = Math.min(x + 14, window.innerWidth - 270) + 'px';
+  tip.style.top = (y + 14) + 'px';
+  tip.style.opacity = 1;
+}
+function hideTip() { tip.style.opacity = 0; }
+function bindTip(node, fn) {
+  node.setAttribute('tabindex', '0');
+  node.addEventListener('pointermove', e => { const t = fn(); showTip(e, ...t); });
+  node.addEventListener('pointerleave', hideTip);
+  node.addEventListener('focus', e => { const t = fn(); showTip(e, ...t); });
+  node.addEventListener('blur', hideTip);
+}
+
+// ---------- state ----------
+let groupFilter = 'all';
+let selected = 'CF_E';
+let view = 'chart';
+const visible = () => M.filter(m => groupFilter === 'all' || m.group === groupFilter);
+
+// ---------- KPIs ----------
+(function kpis() {
+  const box = document.getElementById('kpis');
+  const ages = DATA.map(d => d.age);
+  const flourish = DATA.filter(d => d.type === '心盛型').length;
+  const phqHi = DATA.filter(d => d.phq >= 10).length;
+  const pct = n => Math.round(n / DATA.length * 100) + '%';
+  const items = [
+    ['有效樣本', String(DATA.length), '人', '2026/9/19–10/18 填答'],
+    ['平均年齡', (Math.round(mean(ages) * 10) / 10).toFixed(1), '歲', `範圍 ${Math.min(...ages)}–${Math.max(...ages)} 歲，皆為女性`],
+    ['心盛型', String(flourish), `人（${pct(flourish)}）`, 'mBMI ≥ 21 且 PHQ-9 ≤ 10（暫定）'],
+    ['PHQ-9 中度以上', String(phqHi), `人（${pct(phqHi)}）`, 'PHQ-9 總分 ≥ 10']
+  ];
+  for (const [lab, v, unit, note] of items) {
+    const k = h('div', { class: 'kpi' }, box);
+    h('div', { class: 'lab' }, k, lab);
+    const vv = h('div', { class: 'val' }, k, v); h('small', {}, vv, unit);
+    h('div', { class: 'note' }, k, note);
+  }
+})();
+
+// ---------- chips ----------
+(function chips() {
+  const box = document.getElementById('chips');
+  const opts = [{ id: 'all', name: '全部量表' }, ...GROUPS];
+  for (const o of opts) {
+    const b = h('button', { type: 'button', class: 'chip', 'aria-pressed': String(o.id === groupFilter), 'data-g': o.id }, box, o.name);
+    b.addEventListener('click', () => {
+      groupFilter = o.id;
+      box.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.g === groupFilter)));
+      if (groupFilter !== 'all' && META[selected].group !== groupFilter) selected = visible()[0].key;
+      renderAll();
+    });
+  }
+})();
+document.getElementById('viewChart').addEventListener('click', () => { view = 'chart'; renderAll(); });
+document.getElementById('viewTable').addEventListener('click', () => { view = 'table'; renderAll(); });
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const root = document.documentElement;
+  const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = isDark ? 'light' : 'dark';
+});
+
+// ---------- profile ----------
+function renderProfile() {
+  const wrap = document.getElementById('profileWrap');
+  wrap.textContent = '';
+  const rows = visible();
+  const W = 600, labW = 150, x0 = labW + 10, pw = 260, valX = x0 + pw + 30;
+  const px = t => x0 + t * pw;
+  const rowH = 26, headH = 42, y0 = 34;
+  let y = y0; const pos = []; let prev = '';
+  rows.forEach(m => { if (m.group !== prev) { y += headH; prev = m.group; } pos.push(y); y += rowH; });
+  const H = y + 8;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': '各分量表團體平均在量尺上的位置' }, wrap);
+  // axis
+  [0, 0.25, 0.5, 0.75, 1].forEach(t => {
+    el('line', { x1: px(t), x2: px(t), y1: y0 - 6, y2: H - 8, stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+    el('text', { x: px(t), y: y0 - 12, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 12 }, svg, `${t * 100}%`);
+  });
+  el('text', { x: valX, y: y0 - 12, fill: 'var(--muted)', 'font-size': 12 }, svg, 'M（SD）');
+  prev = '';
+  rows.forEach((m, i) => {
+    const yy = pos[i];
+    if (m.group !== prev) {
+      prev = m.group; const g = GMAP[m.group];
+      el('text', { x: 0, y: yy - 21, fill: 'var(--ink)', 'font-size': 13, 'font-weight': 650 }, svg, `${g.name}（${DIRTXT[g.dir]}）`);
+    }
+    const s = STATS[m.key], span = m.hi - m.lo;
+    const t = (s.m - m.lo) / span, a = Math.max(0, (s.m - s.sd - m.lo) / span), b = Math.min(1, (s.m + s.sd - m.lo) / span);
+    const g = el('g', { class: 'row-hit', role: 'button', 'aria-label': `${m.label}：平均 ${f2(s.m)}，標準差 ${f2(s.sd)}，可能範圍 ${m.lo} 到 ${m.hi}` }, svg);
+    const isSel = m.key === selected;
+    el('rect', { class: 'row-bg', x: 0, y: yy - rowH / 2, width: W, height: rowH, rx: 6, fill: isSel ? 'var(--sel)' : 'transparent' }, g);
+    const col = m.flag ? 'var(--accent)' : 'var(--dot)';
+    const sub = m.label.startsWith('▸');
+    el('text', { x: sub ? 6 : 14, y: yy + 4, fill: m.flag || isSel ? 'var(--ink)' : 'var(--ink2)', 'font-size': 13, 'font-weight': m.flag || isSel || sub ? 600 : 400 }, g, m.label.replace('▸ ', ''));
+    el('line', { x1: px(a), x2: px(b), y1: yy, y2: yy, stroke: col, 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-opacity': 0.55 }, g);
+    el('circle', { cx: px(t), cy: yy, r: 5.5, fill: col, stroke: 'var(--surface)', 'stroke-width': 2 }, g);
+    el('text', { x: valX, y: yy + 4, fill: 'var(--ink2)', 'font-size': 12, style: 'font-variant-numeric: tabular-nums' }, g, `${f2(s.m)}（${f2(s.sd)}）`);
+    el('text', { x: W, y: yy + 4, fill: 'var(--muted)', 'font-size': 11, 'text-anchor': 'end' }, g, `${m.lo}–${m.hi}`);
+    bindTip(g, () => [`M ${f2(s.m)}　SD ${f2(s.sd)}`, m.label.replace('▸ ', ''), `量尺 ${m.lo}–${m.hi} 的 ${Math.round(t * 100)}% 位置`]);
+    g.addEventListener('click', () => { selected = m.key; renderAll(); });
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selected = m.key; renderAll(); } });
+  });
+}
+
+function renderTable() {
+  const wrap = document.getElementById('tableWrap');
+  wrap.textContent = '';
+  const t = h('table', {}, wrap);
+  const hr = h('tr', {}, h('thead', {}, t));
+  ['分量表', '可能範圍', 'N', 'M', 'SD', 'Mdn', 'Min', 'Max'].forEach(c => h('th', { scope: 'col' }, hr, c));
+  const tb = h('tbody', {}, t); let prev = '';
+  visible().forEach(m => {
+    if (m.group !== prev) { prev = m.group; const g = GMAP[m.group]; const r = h('tr', { class: 'grp' }, tb); h('td', { colspan: 8 }, r, `${g.name}（${DIRTXT[g.dir]}）`); }
+    const s = STATS[m.key];
+    const r = h('tr', { class: 'clickable', tabindex: '0' }, tb);
+    [m.label.replace('▸ ', ''), `${m.lo}–${m.hi}`, s.n, f2(s.m), f2(s.sd), fmt(s.mdn), fmt(s.min), fmt(s.max)].forEach(v => h('td', {}, r, String(v)));
+    r.addEventListener('click', () => { selected = m.key; renderAll(); });
+    r.addEventListener('keydown', e => { if (e.key === 'Enter') { selected = m.key; renderAll(); } });
+  });
+}
+
+// ---------- swarm ----------
+function renderSwarm() {
+  const sel = document.getElementById('metricSel');
+  sel.textContent = '';
+  let prev = '', og = null;
+  visible().forEach(m => {
+    if (m.group !== prev) { prev = m.group; og = h('optgroup', { label: GMAP[m.group].name }, sel); }
+    const o = h('option', { value: m.key }, og, m.label.replace('▸ ', ''));
+    if (m.key === selected) o.selected = true;
+  });
+  sel.onchange = () => { selected = sel.value; renderAll(); };
+
+  const m = META[selected], s = STATS[m.key], a = DATA.map(d => d[m.key]);
+  const wrap = document.getElementById('swarm'); wrap.textContent = '';
+  const W = 460, x0 = 20, x1 = W - 20, r = 6;
+  const px = v => x0 + (v - m.lo) / (m.hi - m.lo) * (x1 - x0);
+  // beeswarm placement
+  const order = a.map((v, i) => ({ v, i })).sort((p, q) => p.v - q.v);
+  const placed = [];
+  for (const p of order) {
+    const x = px(p.v); let k = 0, yOff = 0;
+    while (true) {
+      yOff = k === 0 ? 0 : (k % 2 ? -1 : 1) * Math.ceil(k / 2) * (2 * r + 2);
+      if (!placed.some(q => Math.hypot(q.x - x, q.y - yOff) < 2 * r + 1.5)) break;
+      k++;
+    }
+    placed.push({ x, y: yOff, v: p.v });
+  }
+  const ext = Math.max(24, ...placed.map(p => Math.abs(p.y))) + r + 6;
+  const top = 34, cy = top + ext, H = cy + ext + 34;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `${m.label} 的個人分數分布` }, wrap);
+  el('rect', { x: px(Math.max(m.lo, s.m - s.sd)), y: top - 4, width: px(Math.min(m.hi, s.m + s.sd)) - px(Math.max(m.lo, s.m - s.sd)), height: 2 * ext + 8, fill: 'var(--band)', rx: 4 }, svg);
+  el('line', { x1: px(s.m), x2: px(s.m), y1: top - 10, y2: cy + ext + 4, stroke: 'var(--accent)', 'stroke-width': 2 }, svg);
+  el('text', { x: px(s.m), y: top - 14, 'text-anchor': 'middle', fill: 'var(--ink)', 'font-size': 12, 'font-weight': 600 }, svg, `M ${f2(s.m)}`);
+  // axis
+  const ay = cy + ext + 10;
+  el('line', { x1: x0, x2: x1, y1: ay, y2: ay, stroke: 'var(--axis)' }, svg);
+  const span = m.hi - m.lo;
+  let step = 1;
+  if (span > 10) { step = [2, 3, 4, 5, 6, 8, 9, 10].find(c => span % c === 0 && span / c <= 9) || Math.ceil(span / 8); }
+  for (let v = m.lo; v <= m.hi + 1e-9; v += step) {
+    el('line', { x1: px(v), x2: px(v), y1: ay, y2: ay + 4, stroke: 'var(--axis)' }, svg);
+    el('text', { x: px(v), y: ay + 18, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 11 }, svg, String(v));
+  }
+  for (const p of placed) {
+    const g = el('g', { class: 'hit' }, svg);
+    el('circle', { cx: p.x, cy: cy + p.y, r: 12, fill: 'transparent' }, g);
+    el('circle', { cx: p.x, cy: cy + p.y, r: r, fill: m.flag ? 'var(--accent)' : 'var(--dot)', stroke: 'var(--surface)', 'stroke-width': 2 }, g);
+    g.setAttribute('aria-label', `一位參與者：${fmt(p.v)} 分`);
+    bindTip(g, () => [fmt(p.v), m.label.replace('▸ ', ''), '一位參與者（匿名）']);
+  }
+  const st = document.getElementById('stats'); st.textContent = '';
+  [['M', f2(s.m)], ['SD', f2(s.sd)], ['Mdn', fmt(s.mdn)], ['Min', fmt(s.min)], ['Max', fmt(s.max)]].forEach(([k, v]) => { const d = h('div', {}, st); h('b', {}, d, v); h('span', {}, d, k); });
+  const de = document.getElementById('desc'); de.textContent = m.desc;
+  const g = GMAP[m.group]; h('span', { class: 'tag' }, de, `${DIRTXT[g.dir]} · ${m.lo}–${m.hi}`);
+  if (m.flag) h('span', { class: 'tag flag' }, de, '值得留意');
+}
+
+// ---------- quadrant ----------
+function renderQuad() {
+  const wrap = document.getElementById('quad'); wrap.textContent = '';
+  const W = 520, H = 340, L = 46, R = 16, T = 16, B = 40;
+  const xlo = 10, xhi = 30, ylo = 0, yhi = 27;
+  const px = v => L + (v - xlo) / (xhi - xlo) * (W - L - R), py = v => T + (1 - (v - ylo) / (yhi - ylo)) * (H - T - B);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'mBMI 總分與 PHQ-9 的散布圖，依兩條參考線分為四種心理健康類型' }, wrap);
+  for (let v = 10; v <= 30; v += 5) { el('line', { x1: px(v), x2: px(v), y1: T, y2: H - B, stroke: 'var(--grid)' }, svg); el('text', { x: px(v), y: H - B + 16, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 11 }, svg, String(v)); }
+  for (let v = 0; v <= 25; v += 5) { el('line', { x1: L, x2: W - R, y1: py(v), y2: py(v), stroke: 'var(--grid)' }, svg); el('text', { x: L - 8, y: py(v) + 4, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 11 }, svg, String(v)); }
+  el('text', { x: (L + W - R) / 2, y: H - 6, 'text-anchor': 'middle', fill: 'var(--ink2)', 'font-size': 12 }, svg, 'mBMI 總分（3–30，暫定）→ 心理健康資源越多');
+  el('text', { x: 12, y: (T + H - B) / 2, 'text-anchor': 'middle', fill: 'var(--ink2)', 'font-size': 12, transform: `rotate(-90 12 ${(T + H - B) / 2})` }, svg, 'PHQ-9 總分 → 憂鬱症狀越多');
+  el('line', { x1: px(21), x2: px(21), y1: T, y2: H - B, stroke: 'var(--ink2)', 'stroke-width': 1.5 }, svg);
+  el('line', { x1: L, x2: W - R, y1: py(10), y2: py(10), stroke: 'var(--ink2)', 'stroke-width': 1.5 }, svg);
+  const cnt = t => DATA.filter(d => d.type === t).length;
+  const q = [['渾沌型', L + 8, T + 16, 'start'], ['奮戰型', W - R - 8, T + 16, 'end'], ['冷靜型', L + 8, py(10) + 16, 'start'], ['心盛型', W - R - 8, py(10) + 16, 'end']];
+  q.forEach(([t, x, y, anc]) => el('text', { x, y, 'text-anchor': anc, fill: 'var(--ink)', 'font-size': 13, 'font-weight': 600, stroke: 'var(--surface)', 'stroke-width': 4, 'paint-order': 'stroke' }, svg, `${t} ${cnt(t)} 人`));
+  const done = [];
+  DATA.forEach(d => {
+    const cx = px(d.mbT), y = py(d.phq); let k = 0, cy = y;
+    while (done.some(o => Math.hypot(o.x - cx, o.y - cy) < 9) && k < 6) { k++; cy = y + (k % 2 ? -1 : 1) * Math.ceil(k / 2) * 3; }
+    done.push({ x: cx, y: cy });
+    const g = el('g', { class: 'hit' }, svg);
+    el('circle', { cx, cy, r: 12, fill: 'transparent' }, g);
+    el('circle', { cx, cy, r: 5.5, fill: 'var(--accent)', 'fill-opacity': 0.8, stroke: 'var(--surface)', 'stroke-width': 1.5 }, g);
+    g.setAttribute('aria-label', `${d.type}：mBMI ${f2(d.mbT)}，PHQ-9 ${d.phq}`);
+    bindTip(g, () => [d.type, `mBMI 總分 ${f2(d.mbT)}　PHQ-9 ${d.phq}`, '一位參與者（匿名）']);
+  });
+}
+
+// ---------- PHQ bars ----------
+function renderPhq() {
+  const wrap = document.getElementById('phqBars'); wrap.textContent = '';
+  const cats = [['很少憂鬱(0-4)', '很少（0–4）'], ['輕度憂鬱(5-9)', '輕度（5–9）'], ['中度憂鬱(10-14)', '中度（10–14）'], ['中重度憂鬱(15-19)', '中重度（15–19）'], ['重度憂鬱(20-27)', '重度（20–27）']];
+  const W = 520, labW = 110, bw = W - labW - 90, rh = 30;
+  const counts = cats.map(([k]) => DATA.filter(d => d.phqCat === k).length);
+  const mx = Math.max(...counts);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${cats.length * rh + 4}`, role: 'img', 'aria-label': 'PHQ-9 各分級人數' }, wrap);
+  cats.forEach(([k, lab], i) => {
+    const y = i * rh + 4, n = counts[i], w = Math.max(n ? 4 : 0, n / mx * bw);
+    el('text', { x: 0, y: y + 15, fill: 'var(--ink2)', 'font-size': 12 }, svg, lab);
+    const g = el('g', { class: 'hit' }, svg);
+    el('rect', { x: labW, y: y, width: bw + 80, height: rh - 6, fill: 'transparent' }, g);
+    if (n) el('rect', { x: labW, y: y + 2, width: w, height: rh - 10, rx: 4, fill: `var(--r${i + 1})` }, g);
+    el('text', { x: labW + w + 8, y: y + 15, fill: 'var(--ink)', 'font-size': 12, style: 'font-variant-numeric: tabular-nums' }, g, `${n} 人（${Math.round(n / DATA.length * 100)}%）`);
+    g.setAttribute('aria-label', `${lab}：${n} 人`);
+    bindTip(g, () => [`${n} 人`, `PHQ-9 ${lab}`, `占 ${Math.round(n / DATA.length * 100)}%`]);
+  });
+}
+
+// ---------- attachment ranking ----------
+function renderRank() {
+  const wrap = document.getElementById('rankBars'); wrap.textContent = '';
+  const types = [['rA', 'A 安全型'], ['rB', 'B 焦慮型'], ['rC', 'C 逃避型'], ['rD', 'D 排除型']];
+  const W = 520, labW = 90, bw = W - labW - 10, rh = 34;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${types.length * rh + 4}`, role: 'img', 'aria-label': '依附風格自評名次分布' }, wrap);
+  const fills = ['var(--r5)', 'var(--r4)', 'var(--r2)', 'var(--r1)'];
+  types.forEach(([k, lab], i) => {
+    const y = i * rh + 4;
+    el('text', { x: 0, y: y + 17, fill: 'var(--ink2)', 'font-size': 12 }, svg, lab);
+    let x = labW;
+    [1, 2, 3, 4].forEach(rk => {
+      const n = DATA.filter(d => d[k] === rk).length; if (!n) return;
+      const w = n / DATA.length * bw;
+      const g = el('g', { class: 'hit' }, svg);
+      el('rect', { x: x + 1, y: y + 2, width: Math.max(1, w - 2), height: rh - 12, rx: 3, fill: fills[rk - 1] }, g);
+      if (w >= 22) el('text', { x: x + w / 2, y: y + 17, 'text-anchor': 'middle', fill: rk <= 2 ? '#ffffff' : '#0b0b0b', 'font-size': 11, 'font-weight': 600 }, g, String(n));
+      g.setAttribute('aria-label', `${lab}，排第 ${rk}：${n} 人`);
+      bindTip(g, () => [`${n} 人`, `${lab}：排第 ${rk}${rk === 1 ? '（最相似）' : rk === 4 ? '（最不相似）' : ''}`]);
+      x += w;
+    });
+  });
+  const lg = document.getElementById('rankLegend'); lg.textContent = '';
+  ['第 1（最相似）', '第 2', '第 3', '第 4（最不相似）'].forEach((t, i) => { const s = h('span', {}, lg); const sw = h('i', {}, s); sw.style.background = fills[i]; s.appendChild(document.createTextNode(t)); });
+}
+
+function renderAll() {
+  document.getElementById('viewChart').setAttribute('aria-pressed', String(view === 'chart'));
+  document.getElementById('viewTable').setAttribute('aria-pressed', String(view === 'table'));
+  document.getElementById('profileWrap').hidden = view !== 'chart';
+  document.getElementById('tableWrap').hidden = view !== 'table';
+  document.getElementById('profLegend').hidden = view !== 'chart';
+  if (view === 'chart') renderProfile(); else renderTable();
+  renderSwarm();
+}
+renderAll(); renderQuad(); renderPhq(); renderRank();
+</script>
+</body>
+</html>
