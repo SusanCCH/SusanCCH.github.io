@@ -1,0 +1,368 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>案例一覺察練習</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one calm reading column; four numbered practice steps, each a quiet panel; AI dialogue looks like a notebook exchange */
+:root{
+  --bg:#f2f5f3; --surface:#ffffff; --sunk:#e8eeeb; --ink:#1c2827; --muted:#5b6b68; --line:#d5dfdb;
+  --accent:#2c6a64; --accent-soft:#dcebe7; --pause:#a8701a; --pause-soft:#f6ead3; --student:#3d4f7a; --student-soft:#e3e8f4;
+  --f-display:"LXGW WenKai TC","Kaiti TC","STKaiti","DFKai-SB",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131918; --surface:#1b2322; --sunk:#222d2b; --ink:#e4ebe9; --muted:#9aaba7; --line:#2f3c3a;
+  --accent:#74b8ae; --accent-soft:#1f3532; --pause:#e0ab55; --pause-soft:#3a2f1c; --student:#a7b8e6; --student-soft:#232b40; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131918; --surface:#1b2322; --sunk:#222d2b; --ink:#e4ebe9; --muted:#9aaba7; --line:#2f3c3a;
+  --accent:#74b8ae; --accent-soft:#1f3532; --pause:#e0ab55; --pause-soft:#3a2f1c; --student:#a7b8e6; --student-soft:#232b40; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.8;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto;padding-block:28px 64px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0;line-height:1.35}
+h1{font-size:clamp(28px,6vw,38px)}
+h2{font-size:24px}
+h3{font-size:18px}
+p{margin:0}
+.eyebrow{font-size:13px;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.lead{color:var(--muted);max-width:60ch}
+header{display:flex;flex-direction:column;gap:10px}
+
+/* the four-move loop */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:520px){.loop{grid-template-columns:repeat(2,1fr)}}
+.move{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.move b{font-family:var(--f-display);font-size:22px;color:var(--accent)}
+.move span{font-size:14px;color:var(--muted);line-height:1.55}
+
+section.step{display:flex;flex-direction:column;gap:14px}
+.step-head{display:flex;gap:12px;align-items:baseline}
+.num{font-family:var(--f-display);font-size:30px;color:var(--accent);line-height:1;min-width:1.2em}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.scene{background:var(--sunk);border-radius:10px;padding:12px 14px;font-size:15px}
+label.q{font-weight:500}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);color:var(--ink);font:inherit;line-height:1.7}
+textarea{min-height:88px;resize:vertical}
+textarea:focus,input:focus,button:focus-visible,summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.meter{display:flex;align-items:center;gap:12px}
+.meter input{flex:1;accent-color:var(--accent)}
+.meter output{font-variant-numeric:tabular-nums;font-weight:700;min-width:2.5em;text-align:right;color:var(--accent)}
+.hint{font-size:14px;color:var(--muted)}
+
+/* dialogue */
+.chat{display:flex;flex-direction:column;gap:10px}
+.line{max-width:88%;padding:10px 14px;border-radius:14px;min-width:0}
+.line .who{display:block;font-size:12px;letter-spacing:.06em;font-weight:700;margin-bottom:2px}
+.line.s{align-self:flex-start;background:var(--student-soft);border-bottom-left-radius:4px}
+.line.s .who{color:var(--student)}
+.line.s .say{font-family:var(--f-display);font-size:18px}
+.line.t{align-self:flex-end;background:var(--accent-soft);border-bottom-right-radius:4px}
+.line.t .who{color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--surface);border-radius:10px;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.pause{background:var(--pause);border-color:var(--pause);color:var(--surface)}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:14px;color:var(--muted)}
+.mirror{background:var(--pause-soft);border-radius:12px;padding:14px 16px;white-space:pre-wrap;font-size:15px;line-height:1.8}
+.mirror:empty{display:none}
+.mirror .tag{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--pause);margin-bottom:4px}
+
+/* counselor moves */
+.moves{display:flex;flex-direction:column;gap:10px}
+.cm{display:grid;grid-template-columns:4.5em 1fr;gap:12px;align-items:start;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.cm:last-child{border-bottom:none;padding-bottom:0}
+.cm .k{font-family:var(--f-display);font-weight:700;color:var(--accent);font-size:17px}
+.cm q{font-family:var(--f-display);font-size:17px;quotes:"「" "」"}
+.cm .why{display:block;font-size:14px;color:var(--muted)}
+
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 18px}
+details[open]{padding-bottom:16px}
+summary{cursor:pointer;font-weight:700;padding:14px 0}
+.script p{margin:.35em 0}
+.script .c{color:var(--accent)}
+.script .tch{color:var(--pause)}
+.script .stu{color:var(--student)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tablebox{overflow-x:auto}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{font-weight:700;color:var(--muted);font-size:13px}
+ol.tips{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">輔導原理與實務・案例一</div>
+  <h1>從師生衝突到關係修復：覺察練習</h1>
+  <p class="lead">這次不急著分析孩子。先看看自己：被學生頂撞時，心裡冒出什麼？能不能停一下，換個位置看，再選一句更想說的話？</p>
+</header>
+
+<div class="loop" aria-label="覺察四步">
+  <div class="move"><b>停</b><span>先不急著回應</span></div>
+  <div class="move"><b>看</b><span>注意自己的想法與情緒</span></div>
+  <div class="move"><b>換</b><span>從孩子的位置看一次</span></div>
+  <div class="move"><b>選</b><span>依自己在乎的價值選下一句</span></div>
+</div>
+
+<!-- STEP 1 -->
+<section class="step" id="s1">
+  <div class="step-head"><span class="num">1</span><h2>第一反應</h2></div>
+  <div class="panel">
+    <div class="scene">五年級男生因嚴重師生衝突被調到別班，現在要回原班。你是他的導師，今天和他、輔導老師一起晤談。你只知道：他上課常吵同學，也曾和你大吵。</div>
+    <label class="q" for="q1">還沒見到他，你心裡對他有什麼想法？</label>
+    <textarea id="q1" data-save="q1" placeholder="例：他大概又想找麻煩……"></textarea>
+    <div class="q">這個想法帶來什麼感覺？（可複選）</div>
+    <div class="chips" id="feel1" role="group" aria-label="感覺"></div>
+    <div class="meter"><label for="i1" class="hint">強度</label><input type="range" id="i1" min="0" max="10" value="5"><output id="o1" for="i1">5</output></div>
+    <p class="hint">這裡沒有對錯。寫下來，是為了等一下能看見它。</p>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step" id="s2">
+  <div class="step-head"><span class="num">2</span><h2>與 AI 學生對話</h2></div>
+  <div class="panel">
+    <p>AI 會扮演這位學生。用你平常會說的話回應他，最多三回合。不用說得完美。</p>
+    <div class="chat" id="chat"></div>
+    <label class="q" for="reply">你（導師）：</label>
+    <textarea id="reply" placeholder="輸入你想對他說的話"></textarea>
+    <div class="row">
+      <button class="btn" id="send">送出</button>
+      <button class="btn pause" id="pauseBtn" disabled>停一下，照照鏡子</button>
+      <button class="btn ghost" id="restart">重新開始</button>
+      <span class="status" id="chatStatus"></span>
+    </div>
+    <div class="mirror" id="mirror"></div>
+    <p class="hint" id="aiNote">AI 只是練習對象和鏡子，不評分，也不診斷任何人。</p>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step" id="s3">
+  <div class="step-head"><span class="num">3</span><h2>對照諮商師怎麼做</h2></div>
+  <div class="panel">
+    <p>案例中的諮商師，面對同一句抱怨，示範了四種靈活的回應。</p>
+    <div class="moves">
+      <div class="cm"><span class="k">看見想法</span><div><q>我猜你每次搗亂是希望讓導師知道他是不公平的？</q><span class="why">用「我猜」把判斷當成假設，再看孩子的反應來驗證。</span></div></div>
+      <div class="cm"><span class="k">接納情緒</span><div><q>我猜當你生氣的時候，你也不喜歡自己這樣。</q><span class="why">不急著壓下怒氣，先承認它在，人也不等於他的脾氣。</span></div></div>
+      <div class="cm"><span class="k">換個位置</span><div><q>你的導師很歡迎你，但是顯然他擔心……</q><span class="why">同時說出雙方的立場，把「對立」轉成「一起想辦法」。</span></div></div>
+      <div class="cm"><span class="k">選擇行動</span><div><q>你要不要和導師握握手？</q><span class="why">給一個小而具體的下一步。導師也說出「我以前太兇了」。</span></div></div>
+    </div>
+    <label class="q" for="q3">回頭看你剛才的回應：哪一句最像你「被勾住」的時候？當時你在保護什麼？</label>
+    <textarea id="q3" data-save="q3" placeholder="例：我說「我不是每次都用說的嗎」，那時我在保護自己是個盡責的老師……"></textarea>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step" id="s4">
+  <div class="step-head"><span class="num">4</span><h2>再回應一次</h2></div>
+  <div class="panel">
+    <div class="chat"><div class="line s"><span class="who">學生</span><span class="say">我又不是每次都搗亂，○○○他們吵鬧，你就不處罰他們。</span></div></div>
+    <label class="q" for="q4">停、看、換、選之後，你想怎麼說？</label>
+    <textarea id="q4" data-save="q4" placeholder="輸入新的回應"></textarea>
+    <div class="row">
+      <button class="btn ghost" id="tryAgain">看看他會怎麼回</button>
+      <span class="status" id="againStatus"></span>
+    </div>
+    <div class="chat" id="againOut"></div>
+    <div class="meter"><label for="i2" class="hint">現在的情緒強度</label><input type="range" id="i2" min="0" max="10" value="5"><output id="o2" for="i2">5</output></div>
+    <label class="q" for="exit">下課前，完成這句話：</label>
+    <p class="hint">我注意到自己＿＿＿；我其實在乎的是＿＿＿；下次被頂撞時，我會先＿＿＿。</p>
+    <textarea id="exit" data-save="exit"></textarea>
+    <div class="row">
+      <button class="btn" id="saveBtn">下載我的學習單</button>
+      <button class="btn ghost" id="copyBtn">複製內容</button>
+      <span class="status" id="saveStatus"></span>
+    </div>
+  </div>
+</section>
+
+<details>
+  <summary>案例一對話逐字稿（節錄）</summary>
+  <div class="script">
+    <p class="c">諮商師：你想回班上上課嗎？</p>
+    <p class="stu">學生：我想回 A 班上課，在 B 班沒有好朋友在一起。</p>
+    <p class="tch">導師：你上課時為什麼都會吵同學？</p>
+    <p class="c">諮商師：你的導師很歡迎你，但是顯然他擔心你回到班上又會使得課上起來有困難。導師不知道要怎麼做，才能讓你在上課時不再像以前一樣和導師起衝突。</p>
+    <p class="stu">學生：我又不是每次都搗亂，○○○他們吵鬧，你就不處罰他們。</p>
+    <p class="c">諮商師：我猜你每次搗亂是希望讓導師知道他是不公平的？</p>
+    <p class="stu">學生：對，導師越不公平，我就越不想乖乖上課。</p>
+    <p class="c">諮商師：我猜，有時候你也想挑戰一下導師，看看他能有什麼法子？你想贏過他，是不是？</p>
+    <p class="stu">學生：（面露得意的笑容，眼睛發亮）</p>
+    <p class="c">諮商師：你看，導師很關心你，他希望你把精神用來讀書，而不是上課時只想著要挑戰他。導師想知道怎麼幫你，而不是像以前一樣讓你們兩個心情都不好。</p>
+    <p class="stu">學生：不是只有我一個人做的。</p>
+    <p class="tch">導師：那為什麼你說是你做的？</p>
+    <p class="stu">學生：我不要說。</p>
+    <p class="c">諮商師：我想你是講義氣的孩子，你那時候決定不說出朋友的名字。</p>
+    <p class="stu">學生：對啊，他們都是我的好朋友，我為什麼要害他們？</p>
+    <p class="c">諮商師：你告訴老師怎麼和你相處好嗎？</p>
+    <p class="stu">學生：用說的就可以了。</p>
+    <p class="tch">導師：我不是每次都有用說的嗎？但是你都不聽，我才處罰你。</p>
+    <p class="stu">學生：我哪有不聽。</p>
+    <p class="tch">導師：但是我看你發那麼大的脾氣。</p>
+    <p class="stu">學生：我當然生氣，如果有人冤枉你，你說你會不會生氣？</p>
+    <p class="c">諮商師：聽起來你的脾氣不太好，我猜當你生氣的時候，你也不喜歡自己這樣，只是你不知道該如何讓自己的氣消下來。</p>
+    <p class="stu">學生：誰喜歡發脾氣啊！</p>
+    <p class="c">諮商師：聽起來你最不喜歡大人不聽你解釋，如果被冤枉了，你就什麼人的話都不會聽了？</p>
+    <p class="stu">學生：（點頭）</p>
+    <p class="c">諮商師：正好敲鐘了，你要不要和導師握握手，他可以和你一起回教室。</p>
+    <p class="stu">學生：老師，我誤會你了。</p>
+    <p class="tch">導師：我也誤會你了，我不知道你有聽我的話，我以前太兇了。</p>
+  </div>
+</details>
+
+<details>
+  <summary>教師用：觀察指標與帶領提示</summary>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="tablebox"><table>
+      <thead><tr><th>歷程</th><th>被勾住的跡象</th><th>較靈活的跡象</th></tr></thead>
+      <tbody>
+        <tr><td>想法</td><td>「他就是故意的」等絕對判斷</td><td>「我有個想法是……」「我猜……」</td></tr>
+        <tr><td>情緒</td><td>急著辯護、說理、轉移話題</td><td>能說出不舒服，仍留在對話裡</td></tr>
+        <tr><td>視角</td><td>只站在老師立場</td><td>能說出孩子可能的經驗</td></tr>
+        <tr><td>價值</td><td>「他應該聽話」</td><td>「我希望他感受到……」</td></tr>
+        <tr><td>行動</td><td>處罰、說教</td><td>具體、可做的修復語句</td></tr>
+      </tbody>
+    </table></div>
+    <ol class="tips">
+      <li>步驟 1 和步驟 4 的情緒強度可前後對照，作為覺察的簡易指標。</li>
+      <li>步驟 2 後請學生兩兩分享「哪一句話最被勾住」，教師只示範好奇，不評價。</li>
+      <li>學習單文字可依上表編碼，觀察師資生回應的變化。</li>
+      <li>若有學生因練習觸動個人經驗，暫停活動，個別關懷並視需要轉介。</li>
+    </ol>
+  </div>
+</details>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const FIRST='我又不是每次都搗亂，○○○他們吵鬧，你就不處罰他們。';
+const FEELS=['生氣','無奈','擔心','委屈','挫折','想說服他','想放棄','好奇'];
+const MAX_ROUNDS=3;
+
+// autosave text fields
+document.querySelectorAll('textarea[data-save]').forEach(t=>{t.value=store.get('c1-'+t.dataset.save)||'';t.addEventListener('input',()=>store.set('c1-'+t.dataset.save,t.value))});
+// feelings
+let picked=new Set((store.get('c1-feel')||'').split('|').filter(Boolean));
+FEELS.forEach(f=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=f;b.setAttribute('aria-pressed',picked.has(f));
+  b.onclick=()=>{picked.has(f)?picked.delete(f):picked.add(f);b.setAttribute('aria-pressed',picked.has(f));store.set('c1-feel',[...picked].join('|'))};$('feel1').append(b)});
+[['i1','o1'],['i2','o2']].forEach(([i,o])=>{const v=store.get('c1-'+i);if(v!==null)$(i).value=v;$(o).textContent=$(i).value;$(i).oninput=()=>{$(o).textContent=$(i).value;store.set('c1-'+i,$(i).value)}});
+
+// dialogue state
+let turns=[]; // {who:'s'|'t', text}
+try{turns=JSON.parse(store.get('c1-turns')||'[]')}catch(e){turns=[]}
+if(!turns.length) turns=[{who:'s',text:FIRST}];
+function saveTurns(){store.set('c1-turns',JSON.stringify(turns))}
+function bubble(who,text,parent){const d=document.createElement('div');d.className='line '+who;
+  const w=document.createElement('span');w.className='who';w.textContent=who==='s'?'學生':'你（導師）';
+  const s=document.createElement('span');s.className='say';s.textContent=text;d.append(w,s);(parent||$('chat')).append(d);return s}
+function teacherRounds(){return turns.filter(t=>t.who==='t').length}
+function renderChat(){$('chat').textContent='';turns.forEach(t=>bubble(t.who,t.text));
+  const done=teacherRounds()>=MAX_ROUNDS;$('send').disabled=done||!sample;$('reply').disabled=done;
+  $('pauseBtn').disabled=teacherRounds()<1||!sample;
+  if(done)$('chatStatus').textContent='三回合結束，按「停一下」看看自己。'}
+
+const ROLE=`你正在協助師資培育課程的角色扮演練習。請扮演一位台灣國小五年級男生，以下是背景：
+- 他因嚴重師生衝突被調到別班，現在要回原班，此刻正和導師、輔導老師晤談。
+- 他想回原班，因為好朋友在那裡；他覺得導師不公平，別人吵沒被罰，只有他被罰。
+- 他很在意「大人不聽他解釋」，被冤枉時會更生氣、更想跟老師對著幹；他也講義氣，不會出賣朋友。
+回應規則：
+- 只用繁體中文、台灣小學生的口吻，一次一到兩句，不要加旁白，可在括號內寫一個簡短表情或動作。
+- 當老師責備、質問、說教、為自己辯護時，你更防衛或頂嘴；當老師好奇地聽、承認你的感受、說出自己的擔心或願意一起想辦法時，你慢慢軟化，願意多說一點。
+- 保持真實但不辱罵、不說髒話。永遠不要跳出角色，不要評論老師的說法。`;
+
+function toInput(){const arr=[{role:'user',content:ROLE+'\n\n你已經先說了第一句話。接下來是導師的回應，請以學生身分回答。'}];
+  turns.forEach(t=>arr.push(t.who==='s'?{role:'assistant',content:t.text}:{role:'user',content:'導師說：'+t.text}));return arr}
+function transcript(){return turns.map(t=>(t.who==='s'?'學生：':'導師：')+t.text).join('\n')}
+function errText(e){const c=e&&e.code;
+  if(c==='not_granted'||c==='sampling_disabled'||c==='not_declared'||c==='capability_disabled')return '這個檢視無法使用 AI，可改為兩人一組，由同學扮演學生。';
+  if(c==='rate_limited')return '使用次數太密集，請稍後再按一次。';
+  if(c==='session_expired')return '請重新登入後再試。';
+  if(c==='refused')return 'AI 無法回應這段內容，請換個說法。';
+  return '連線中斷，請再按一次。'}
+
+let sample=null;
+renderChat();
+window.claude?.use?.('sample').then(s=>{sample=s;
+  if(!s){$('aiNote').textContent='此處無法使用 AI。可兩人一組，由同學扮演學生，照同樣步驟練習。';$('tryAgain').disabled=true}
+  renderChat()}).catch(()=>{});
+if(!window.claude){$('aiNote').textContent='此處無法使用 AI。可兩人一組，由同學扮演學生，照同樣步驟練習。';$('send').disabled=true;$('tryAgain').disabled=true}
+
+$('send').onclick=async()=>{const v=$('reply').value.trim();if(!v||!sample)return;
+  turns.push({who:'t',text:v});saveTurns();$('reply').value='';renderChat();
+  $('send').disabled=true;$('chatStatus').textContent='他在想……';
+  const span=bubble('s','…');
+  try{const {text}=await sample(toInput(),{modelTier:'quick',cache:false,onText:({text})=>{span.textContent=text}});
+    turns.push({who:'s',text:text.trim()});saveTurns();$('chatStatus').textContent=''}
+  catch(e){turns.pop();saveTurns();$('reply').value=v;$('chatStatus').textContent=errText(e)}
+  renderChat()};
+
+$('restart').onclick=()=>{turns=[{who:'s',text:FIRST}];saveTurns();$('mirror').textContent='';$('chatStatus').textContent='';renderChat()};
+
+$('pauseBtn').onclick=async()=>{if(!sample)return;const m=$('mirror');
+  m.textContent='';const tag=document.createElement('span');tag.className='tag';tag.textContent='鏡子';const body=document.createElement('span');body.textContent='正在整理……';m.append(tag,body);
+  $('pauseBtn').disabled=true;
+  const prompt=`你是師資培育課程中的「覺察鏡子」，協助師資生觀察自己的心理靈活性。請讀以下資料，用繁體中文（台灣用語）回應這位扮演導師的師資生。
+
+【練習前的第一反應】${$('q1').value||'（未填）'}
+【當時的感覺】${[...picked].join('、')||'（未選）'}，強度 ${$('i1').value}/10
+【對話】
+${transcript()}
+
+回應方式：
+1. 引用他說過的一兩句原話，平實描述你看到的：哪裡像是被某個想法「勾住」（例如急著辯護、說理、質問），哪裡有打開空間（例如好奇、承認感受、說出擔心、邀請合作）。只描述，不打分數、不說好壞。
+2. 點出孩子在對話中可能的感受或需要，一句話即可。
+3. 用一個溫和的問題收尾，邀請他看見自己在乎的是什麼，例如「那一刻你最想守住的是什麼？」
+全文不超過 180 字，不要條列標題，不要給標準答案，不要做任何心理診斷。`;
+  try{await sample(prompt,{onText:({text})=>{body.textContent=text}})}
+  catch(e){body.textContent=e.text||errText(e)}
+  $('pauseBtn').disabled=false};
+
+$('tryAgain').onclick=async()=>{const v=$('q4').value.trim();if(!v||!sample){$('againStatus').textContent='先寫下你的新回應。';return}
+  const out=$('againOut');out.textContent='';bubble('t',v,out);const span=bubble('s','…',out);
+  $('tryAgain').disabled=true;$('againStatus').textContent='';
+  try{await sample([{role:'user',content:ROLE+'\n\n你已經先說了第一句話。接下來是導師的回應，請以學生身分回答。'},{role:'assistant',content:FIRST},{role:'user',content:'導師說：'+v}],{modelTier:'quick',cache:false,onText:({text})=>{span.textContent=text}})}
+  catch(e){span.textContent='';$('againStatus').textContent=errText(e)}
+  $('tryAgain').disabled=false};
+
+function sheet(){return `案例一覺察練習｜我的學習單
+日期：${new Date().toLocaleDateString('zh-TW')}
+
+【1 第一反應】
+${$('q1').value||'（未填）'}
+感覺：${[...picked].join('、')||'（未選）'}；強度 ${$('i1').value}/10
+
+【2 與 AI 學生的對話】
+${transcript()}
+
+【鏡子回饋】
+${($('mirror').textContent||'').replace(/^鏡子/,'')||'（未使用）'}
+
+【3 我被勾住的地方】
+${$('q3').value||'（未填）'}
+
+【4 再回應一次】
+${$('q4').value||'（未填）'}
+現在的情緒強度：${$('i2').value}/10
+
+【下課前的一句話】
+${$('exit').value||'（未填）'}
+`}
+let downloads=null;window.claude?.use?.('downloads').then(d=>{downloads=d}).catch(()=>{});
+$('saveBtn').onclick=async()=>{if(!downloads){$('saveStatus').textContent='這裡無法下載，請改用「複製內容」。';return}
+  try{await downloads.save({filename:'案例一覺察練習_學習單.txt',data:sheet()});$('saveStatus').textContent='已下載'}
+  catch(e){$('saveStatus').textContent='沒有下載，可改用「複製內容」。'}};
+$('copyBtn').onclick=()=>{const t=sheet();
+  navigator.clipboard.writeText(t).then(()=>{$('saveStatus').textContent='已複製，可貼到作業平台。'})
+  .catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();$('saveStatus').textContent='已選取全文，請按複製。'})};
+</script>
+
+</body></html>
